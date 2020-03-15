@@ -195,6 +195,10 @@ func TestMapStreams(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 3, size)
 
+	size, err = map2.Len(context.TODO())
+	assert.NoError(t, err)
+	assert.Equal(t, 3, size)
+
 	err = map1.Close(context.Background())
 	assert.NoError(t, err)
 
@@ -210,4 +214,8 @@ func TestMapStreams(t *testing.T) {
 	size, err = _map.Len(context.TODO())
 	assert.NoError(t, err)
 	assert.Equal(t, 0, size)
+
+	err = _map.Delete(context.Background())
+	assert.NoError(t, err)
+
 }

@@ -93,7 +93,6 @@ func (m *Service) Backup(writer io.Writer) error {
 	}
 
 	entries := m.getMapEntries()
-
 	return util.WriteMap(writer, entries, func(key string, value *MapEntryValue) ([]byte, error) {
 		return proto.Marshal(&MapEntry{
 			Key:   key,
@@ -151,15 +150,12 @@ func (m *Service) Restore(reader io.Reader) error {
 
 // Put puts a key/value pair in the map
 func (m *Service) Put(value []byte) ([]byte, error) {
-	m.getMapEntries()
 	conn := m.redisPool.Get()
 	defer conn.Close()
 	request := &PutRequest{}
 	if err := proto.Unmarshal(value, request); err != nil {
 		return nil, err
 	}
-
-	//oldValue := m.entries[request.Key]
 	mapOldValue, err := conn.Do(HGET, m.mapName, request.Key)
 
 	if err != nil {
@@ -187,7 +183,6 @@ func (m *Service) Put(value []byte) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		//m.entries[request.Key] = newValue
 		_, err = conn.Do(HSET, m.mapName, request.Key, newValueBytes)
 		if err != nil {
 			return nil, err
@@ -249,7 +244,6 @@ func (m *Service) Put(value []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	//m.entries[request.Key] = newValue
 
 	// Schedule the timeout for the value if necessary.
 	m.scheduleTTL(request.Key, newValue)
@@ -317,7 +311,10 @@ func (m *Service) Replace(value []byte) ([]byte, error) {
 		Updated: m.Context.Timestamp(),
 	}
 
-	newValueBytes, _ := newValue.Marshal()
+	newValueBytes, err := newValue.Marshal()
+	if err != nil {
+		return nil, err
+	}
 	_, err = conn.Do(HSET, m.mapName, request.Key, newValueBytes)
 	if err != nil {
 		return nil, err
