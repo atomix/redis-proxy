@@ -18,7 +18,7 @@ import (
 	"bytes"
 	"io"
 
-	rc "github.com/atomix/redis-proxy/pkg/redis_client"
+	rc "github.com/atomix/redis-proxy/pkg/redisclient"
 
 	"github.com/atomix/go-framework/pkg/atomix/node"
 	"github.com/atomix/go-framework/pkg/atomix/service"
@@ -144,6 +144,7 @@ func (m *Service) Restore(reader io.Reader) error {
 	if err != nil {
 		return err
 	}
+
 	//m.entries = entries
 	return nil
 }
@@ -277,7 +278,7 @@ func (m *Service) Replace(value []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	oldValue, err, exist := m.getMapEntryValue(request.Key)
+	oldValue, exist, err := m.getMapEntryValue(request.Key)
 	if err != nil {
 		return nil, err
 	}
@@ -353,7 +354,7 @@ func (m *Service) Remove(bytes []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	value, err, exist := m.getMapEntryValue(request.Key)
+	value, exist, err := m.getMapEntryValue(request.Key)
 	if err != nil {
 		return nil, err
 	}
@@ -405,7 +406,7 @@ func (m *Service) Get(bytes []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	value, err, exist := m.getMapEntryValue(request.Key)
+	value, exist, err := m.getMapEntryValue(request.Key)
 	if err != nil {
 		return nil, err
 	}
@@ -534,7 +535,7 @@ func (m *Service) scheduleTTL(key string, value *MapEntryValue) {
 				Type:    ListenResponse_REMOVED,
 				Key:     key,
 				Value:   value.Value,
-				Version: uint64(value.Version),
+				Version: value.Version,
 				Created: value.Created,
 				Updated: value.Updated,
 			})

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package redis_client
+package redisclient
 
 import (
 	"time"
@@ -20,6 +20,7 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
+// NewPool creates a redis pool
 func NewPool(server string) *redis.Pool {
 	return &redis.Pool{
 		MaxIdle:     3,

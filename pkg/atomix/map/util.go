@@ -18,23 +18,23 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
-func (m *Service) getMapEntryValue(key string) (MapEntryValue, error, bool) {
+func (m *Service) getMapEntryValue(key string) (MapEntryValue, bool, error) {
 	conn := m.redisPool.Get()
 	defer conn.Close()
 	mapValue, err := conn.Do(HGET, m.mapName, key)
 	if mapValue == nil {
-		return MapEntryValue{}, nil, false
+		return MapEntryValue{}, false, nil
 	}
 	if err != nil {
-		return MapEntryValue{}, err, false
+		return MapEntryValue{}, false, err
 	}
 
 	mapEntryValue := MapEntryValue{}
 	err = mapEntryValue.Unmarshal(mapValue.([]byte))
 	if err != nil {
-		return MapEntryValue{}, err, false
+		return MapEntryValue{}, false, err
 	}
-	return mapEntryValue, nil, true
+	return mapEntryValue, true, nil
 }
 
 func (m *Service) getMapEntries() map[string]*MapEntryValue {
@@ -46,8 +46,7 @@ func (m *Service) getMapEntries() map[string]*MapEntryValue {
 	}
 
 	mapEntryValues := make(map[string]*MapEntryValue, len(entries))
-
-	for key, _ := range entries {
+	for key := range entries {
 		mapEntryValue, _, _ := m.getMapEntryValue(key)
 		mapEntryValues[key] = &mapEntryValue
 	}
