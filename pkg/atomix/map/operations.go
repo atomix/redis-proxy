@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package _map
+package _map //nolint:golint
 
 const (
 	opPut     = "Put"
@@ -40,9 +40,8 @@ const (
 	HGETALL = "HGETALL"
 	// Get number of fields in a hash
 	HLEN = "HLEN"
-
-	//
+	// Determine if a hash field exists
 	HEXISTS = "HEXISTS"
-
+	// Get all of the fields in a hash
 	HKEYS = "HKEYS"
 )

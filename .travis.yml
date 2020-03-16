@@ -21,6 +21,6 @@ before_script:
 
 jobs:
   include:
-    - stage: tests
+    - stage: coverage
       script:
-        - make test
+        - make coverage
