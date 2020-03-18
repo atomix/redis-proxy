@@ -14,18 +14,6 @@
 
 package _map //nolint:golint
 
-const (
-	opPut     = "Put"
-	opReplace = "Replace"
-	opRemove  = "Remove"
-	opGet     = "Get"
-	opExists  = "Exists"
-	opSize    = "Size"
-	opClear   = "Clear"
-	opEvents  = "Events"
-	opEntries = "Entries"
-)
-
 // Redis commands
 const (
 	// Get the value of a hash field

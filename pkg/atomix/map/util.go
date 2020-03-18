@@ -14,30 +14,16 @@
 
 package _map //nolint:golint
 
-import (
-	"github.com/gomodule/redigo/redis"
-)
-
-func (m *Service) getMapEntryValue(key string) (MapEntryValue, bool, error) {
-	conn := m.redisPool.Get()
-	defer conn.Close()
-	mapValue, err := conn.Do(HGET, m.mapName, key)
-	if mapValue == nil {
-		return MapEntryValue{}, false, nil
-	}
-	if err != nil {
-		return MapEntryValue{}, false, err
-	}
-
+/*func (s *Server) getMapEntryValue(mapValue interface{}) (MapEntryValue, error) {
 	mapEntryValue := MapEntryValue{}
-	err = mapEntryValue.Unmarshal(mapValue.([]byte))
+	err := mapEntryValue.Unmarshal(mapValue.([]byte))
 	if err != nil {
-		return MapEntryValue{}, false, err
+		return MapEntryValue{}, err
 	}
-	return mapEntryValue, true, nil
-}
+	return mapEntryValue, nil
+}*/
 
-func (m *Service) getMapEntries() map[string]*MapEntryValue {
+/*func (m *Service) getMapEntries() map[string]*MapEntryValue {
 	conn := m.redisPool.Get()
 	defer conn.Close()
 	entries, err := redis.StringMap(conn.Do(HGETALL, m.mapName))
@@ -53,4 +39,4 @@ func (m *Service) getMapEntries() map[string]*MapEntryValue {
 
 	return mapEntryValues
 
-}
+}*/

@@ -17,31 +17,38 @@ package _map //nolint:golint
 import (
 	"context"
 
-	"github.com/atomix/api/proto/atomix/headers"
 	api "github.com/atomix/api/proto/atomix/map"
-	"github.com/atomix/go-framework/pkg/atomix/node"
-	"github.com/atomix/go-framework/pkg/atomix/server"
-	"github.com/atomix/go-framework/pkg/atomix/service"
-	streams "github.com/atomix/go-framework/pkg/atomix/stream"
-	"github.com/golang/protobuf/proto"
-	log "github.com/sirupsen/logrus"
+	"github.com/atomix/redis-proxy/pkg/redisclient"
+
+	"github.com/atomix/redis-proxy/pkg/atomix/server"
+	service "github.com/atomix/redis-proxy/pkg/server"
+	"github.com/gomodule/redigo/redis"
+	"github.com/onosproject/onos-lib-go/pkg/logging"
 	"google.golang.org/grpc"
 )
 
-func init() {
-	node.RegisterServer(registerServer)
+var log = logging.GetLogger("redis", "map")
+
+// NewService returns a new Service
+func NewService() (service.Service, error) {
+	return &Service{}, nil
 }
 
-// registerServer registers a map server with the given gRPC server
-func registerServer(server *grpc.Server, protocol node.Protocol) {
-	api.RegisterMapServiceServer(server, newServer(protocol))
+// Service is an implementation of map api service.
+type Service struct {
+	service.Service
 }
 
-func newServer(protocol node.Protocol) api.MapServiceServer {
+// Register registers the map service
+func (s Service) Register(r *grpc.Server) {
+	api.RegisterMapServiceServer(r, newServer())
+
+}
+
+func newServer() api.MapServiceServer {
 	return &Server{
 		Server: &server.Server{
-			Type:     service.ServiceType_MAP,
-			Protocol: protocol,
+			RedisPool: redisclient.NewPool("localhost:6379"),
 		},
 	}
 }
@@ -54,260 +61,137 @@ type Server struct {
 
 // Create opens a new session
 func (s *Server) Create(ctx context.Context, request *api.CreateRequest) (*api.CreateResponse, error) {
-	log.Tracef("Received CreateRequest %+v", request)
-	header, err := s.DoCreateService(ctx, request.Header)
-	if err != nil {
-		return nil, err
-	}
-	response := &api.CreateResponse{
-		Header: header,
-	}
-	log.Tracef("Sending CreateResponse %+v", response)
+	log.Info("Received CreateRequest %+v", request)
+
+	response := &api.CreateResponse{}
+	log.Info("Sending CreateResponse %+v", response)
 	return response, nil
 }
 
 // Close closes a session
-func (s *Server) Close(ctx context.Context, request *api.CloseRequest) (*api.CloseResponse, error) {
-	log.Tracef("Received CloseRequest %+v", request)
+/*func (s *Server) Close(ctx context.Context, request *api.CloseRequest) (*api.CloseResponse, error) {
+	log.Info("Received CloseRequest %+v", request)
 	if request.Delete {
-		header, err := s.DoDeleteService(ctx, request.Header)
-		if err != nil {
-			return nil, err
-		}
-		response := &api.CloseResponse{
-			Header: header,
-		}
-		log.Tracef("Sending CloseResponse %+v", response)
-		return response, nil
 	}
 
-	header, err := s.DoCloseService(ctx, request.Header)
-	if err != nil {
-		return nil, err
-	}
-	response := &api.CloseResponse{
-		Header: header,
-	}
-	log.Tracef("Sending CloseResponse %+v", response)
+
+	response := &api.CloseResponse{}
+	log.Info("Sending CloseResponse %+v", response)
 	return response, nil
-}
+}*/
 
 // Size gets the number of entries in the map
 func (s *Server) Size(ctx context.Context, request *api.SizeRequest) (*api.SizeResponse, error) {
-	log.Tracef("Received SizeRequest %+v", request)
-	in, err := proto.Marshal(&SizeRequest{})
+	log.Info("Received SizeRequest %+v", request)
+	size, err := redis.Int(s.DoCommand(HLEN, request.Header.Name.Name))
 	if err != nil {
-		return nil, err
-	}
-
-	out, header, err := s.DoQuery(ctx, opSize, in, request.Header)
-	if err != nil {
-		return nil, err
-	}
-
-	sizeResponse := &SizeResponse{}
-	if err = proto.Unmarshal(out, sizeResponse); err != nil {
 		return nil, err
 	}
 
 	response := &api.SizeResponse{
-		Header: header,
-		Size_:  sizeResponse.Size_,
+		Size_: int32(size),
 	}
-	log.Tracef("Sending SizeResponse %+v", response)
+	log.Info("Sending SizeResponse %+v", response)
 	return response, nil
 }
 
 // Exists checks whether the map contains a key
 func (s *Server) Exists(ctx context.Context, request *api.ExistsRequest) (*api.ExistsResponse, error) {
-	log.Tracef("Received ExistsRequest %+v", request)
-	in, err := proto.Marshal(&ContainsKeyRequest{
-		Key: request.Key,
-	})
+	log.Info("Received ExistsRequest %+v", request)
+	containsKey, err := redis.Bool(s.DoCommand(HEXISTS, request.Header.Name.Name, request.Key))
 	if err != nil {
-		return nil, err
-	}
-
-	out, header, err := s.DoQuery(ctx, opExists, in, request.Header)
-	if err != nil {
-		return nil, err
-	}
-
-	containsResponse := &ContainsKeyResponse{}
-	if err = proto.Unmarshal(out, containsResponse); err != nil {
 		return nil, err
 	}
 
 	response := &api.ExistsResponse{
-		Header:      header,
-		ContainsKey: containsResponse.ContainsKey,
+		ContainsKey: containsKey,
 	}
-	log.Tracef("Sending ExistsResponse %+v", response)
+	log.Info("Sending ExistsResponse %+v", response)
 	return response, nil
 }
 
 // Put puts a key/value pair into the map
 func (s *Server) Put(ctx context.Context, request *api.PutRequest) (*api.PutResponse, error) {
-	log.Tracef("Received PutRequest %+v", request)
-	in, err := proto.Marshal(&PutRequest{
-		Key:     request.Key,
-		Value:   request.Value,
-		Version: uint64(request.Version),
-		TTL:     request.TTL,
-		IfEmpty: request.Version == -1,
-	})
+	log.Info("Received PutRequest %+v", request)
+
+	_, err := s.DoCommand(HSET, request.Header.Name.Name, request.Key, request.Value)
 	if err != nil {
 		return nil, err
 	}
 
-	out, header, err := s.DoCommand(ctx, opPut, in, request.Header)
-	if err != nil {
-		return nil, err
-	}
-
-	putResponse := &PutResponse{}
-	if err = proto.Unmarshal(out, putResponse); err != nil {
-		return nil, err
-	}
-
-	response := &api.PutResponse{
-		Header:          header,
-		Status:          getResponseStatus(putResponse.Status),
-		Created:         putResponse.Created,
-		Updated:         putResponse.Updated,
-		PreviousValue:   putResponse.PreviousValue,
-		PreviousVersion: int64(putResponse.PreviousVersion),
-	}
-	log.Tracef("Sending PutResponse %+v", response)
+	response := &api.PutResponse{}
+	log.Debug("Sending PutResponse %+v", response)
 	return response, nil
 }
 
 // Replace replaces a key/value pair in the map
 func (s *Server) Replace(ctx context.Context, request *api.ReplaceRequest) (*api.ReplaceResponse, error) {
-	log.Tracef("Received ReplaceRequest %+v", request)
-	in, err := proto.Marshal(&ReplaceRequest{
-		Key:             request.Key,
-		PreviousValue:   request.PreviousValue,
-		PreviousVersion: uint64(request.PreviousVersion),
-		NewValue:        request.NewValue,
-		TTL:             request.TTL,
-	})
+	log.Info("Received ReplaceRequest %+v", request)
+	_, err := s.DoCommand(HSET, request.Header.Name.Name, request.Key, request.NewValue)
 	if err != nil {
 		return nil, err
 	}
 
-	out, header, err := s.DoCommand(ctx, opReplace, in, request.Header)
-	if err != nil {
-		return nil, err
-	}
-
-	replaceResponse := &ReplaceResponse{}
-	if err = proto.Unmarshal(out, replaceResponse); err != nil {
-		return nil, err
-	}
-
-	response := &api.ReplaceResponse{
-		Header:          header,
-		Status:          getResponseStatus(replaceResponse.Status),
-		Created:         replaceResponse.Created,
-		Updated:         replaceResponse.Updated,
-		PreviousValue:   replaceResponse.PreviousValue,
-		PreviousVersion: int64(replaceResponse.PreviousVersion),
-	}
-	log.Tracef("Sending ReplaceResponse %+v", response)
+	response := &api.ReplaceResponse{}
+	log.Info("Sending ReplaceResponse %+v", response)
 	return response, nil
 }
 
 // Get gets the value of a key
 func (s *Server) Get(ctx context.Context, request *api.GetRequest) (*api.GetResponse, error) {
-	log.Tracef("Received GetRequest %+v", request)
-	in, err := proto.Marshal(&GetRequest{
-		Key: request.Key,
-	})
+	log.Info("Received GetRequest %+v", request)
+	value, err := redis.Bytes(s.DoCommand(HGET, request.Header.Name.Name, request.Key))
 	if err != nil {
 		return nil, err
 	}
 
-	out, header, err := s.DoQuery(ctx, opGet, in, request.Header)
-	if err != nil {
-		return nil, err
-	}
-
-	getResponse := &GetResponse{}
-	if err = proto.Unmarshal(out, getResponse); err != nil {
+	if value == nil {
 		return nil, err
 	}
 
 	response := &api.GetResponse{
-		Header:  header,
-		Value:   getResponse.Value,
-		Version: int64(getResponse.Version),
-		Created: getResponse.Created,
-		Updated: getResponse.Updated,
+		Value: value,
 	}
-	log.Tracef("Sending GetRequest %+v", response)
+	log.Info("Sending GetRequest %+v", response)
 	return response, nil
 }
 
 // Remove removes a key from the map
 func (s *Server) Remove(ctx context.Context, request *api.RemoveRequest) (*api.RemoveResponse, error) {
-	log.Tracef("Received RemoveRequest %+v", request)
-	in, err := proto.Marshal(&RemoveRequest{
-		Key:     request.Key,
-		Value:   request.Value,
-		Version: uint64(request.Version),
-	})
+	log.Info("Received RemoveRequest %+v", request)
+	_, err := s.DoCommand(HDEL, request.Header.Name.Name, request.Key)
 	if err != nil {
 		return nil, err
 	}
 
-	out, header, err := s.DoCommand(ctx, opRemove, in, request.Header)
-	if err != nil {
-		return nil, err
-	}
-
-	serviceResponse := &RemoveResponse{}
-	if err = proto.Unmarshal(out, serviceResponse); err != nil {
-		return nil, err
-	}
-
-	response := &api.RemoveResponse{
-		Header:          header,
-		Status:          getResponseStatus(serviceResponse.Status),
-		PreviousValue:   serviceResponse.PreviousValue,
-		PreviousVersion: int64(serviceResponse.PreviousVersion),
-	}
-	log.Tracef("Sending RemoveRequest %+v", response)
+	response := &api.RemoveResponse{}
+	log.Info("Sending RemoveRequest %+v", response)
 	return response, nil
 }
 
 // Clear removes all keys from the map
 func (s *Server) Clear(ctx context.Context, request *api.ClearRequest) (*api.ClearResponse, error) {
-	log.Tracef("Received ClearRequest %+v", request)
-	in, err := proto.Marshal(&ClearRequest{})
+	log.Info("Received ClearRequest %+v", request)
+
+	keys, err := redis.Strings(s.DoCommand(HKEYS, request.Header.Name.Name))
 	if err != nil {
 		return nil, err
 	}
 
-	out, header, err := s.DoCommand(ctx, opClear, in, request.Header)
-	if err != nil {
-		return nil, err
+	for _, key := range keys {
+		_, err = s.DoCommand(HDEL, request.Header.Name.Name, key)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	serviceResponse := &ClearResponse{}
-	if err = proto.Unmarshal(out, serviceResponse); err != nil {
-		return nil, err
-	}
-
-	response := &api.ClearResponse{
-		Header: header,
-	}
-	log.Tracef("Sending ClearResponse %+v", response)
+	response := &api.ClearResponse{}
+	log.Info("Sending ClearResponse %+v", response)
 	return response, nil
 }
 
 // Events listens for map change events
-func (s *Server) Events(request *api.EventRequest, srv api.MapService_EventsServer) error {
+/*func (s *Server) Events(request *api.EventRequest, srv api.MapService_EventsServer) error {
 	log.Tracef("Received EventRequest %+v", request)
 	in, err := proto.Marshal(&ListenRequest{
 		Replay: request.Replay,
@@ -367,68 +251,34 @@ func (s *Server) Events(request *api.EventRequest, srv api.MapService_EventsServ
 	}
 	log.Tracef("Finished EventRequest %+v", request)
 	return nil
-}
+}*/
 
 // Entries lists all entries currently in the map
 func (s *Server) Entries(request *api.EntriesRequest, srv api.MapService_EntriesServer) error {
-	log.Tracef("Received EntriesRequest %+v", request)
-	in, err := proto.Marshal(&EntriesRequest{})
+	log.Info("Received EntriesRequest %+v", request)
+	entries, err := redis.StringMap(s.DoCommand(HGETALL, request.Header.Name.Name))
 	if err != nil {
 		return err
 	}
 
-	stream := streams.NewBufferedStream()
-	if err := s.DoQueryStream(srv.Context(), opEntries, in, request.Header, stream); err != nil {
-		return err
-	}
-
-	for {
-		result, ok := stream.Receive()
-		if !ok {
-			break
+	for key, value := range entries {
+		entryResponse := &api.EntriesResponse{
+			Key:   key,
+			Value: []byte(value),
 		}
 
-		if result.Failed() {
-			return result.Error
-		}
-
-		response := &EntriesResponse{}
-		output := result.Value.(server.SessionOutput)
-		if err = proto.Unmarshal(output.Value.([]byte), response); err != nil {
+		err = srv.Send(entryResponse)
+		if err != nil {
 			return err
 		}
 
-		var entriesResponse *api.EntriesResponse
-		switch output.Header.Type {
-		case headers.ResponseType_OPEN_STREAM:
-			entriesResponse = &api.EntriesResponse{
-				Header: output.Header,
-			}
-		case headers.ResponseType_CLOSE_STREAM:
-			entriesResponse = &api.EntriesResponse{
-				Header: output.Header,
-			}
-		default:
-			entriesResponse = &api.EntriesResponse{
-				Header:  output.Header,
-				Key:     response.Key,
-				Value:   response.Value,
-				Version: int64(response.Version),
-				Created: response.Created,
-				Updated: response.Updated,
-			}
-		}
-
-		log.Tracef("Sending EntriesResponse %+v", entriesResponse)
-		if err = srv.Send(entriesResponse); err != nil {
-			return err
-		}
 	}
-	log.Tracef("Finished EntriesRequest %+v", request)
+
+	log.Info("Finished EntriesRequest %+v", request)
 	return nil
 }
 
-func getResponseStatus(status UpdateStatus) api.ResponseStatus {
+/*func getResponseStatus(status UpdateStatus) api.ResponseStatus {
 	switch status {
 	case UpdateStatus_OK:
 		return api.ResponseStatus_OK
@@ -454,4 +304,4 @@ func getEventType(eventType ListenResponse_Type) api.EventResponse_Type {
 		return api.EventResponse_REMOVED
 	}
 	return api.EventResponse_NONE
-}
+}*/
