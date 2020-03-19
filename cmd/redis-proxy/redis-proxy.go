@@ -17,6 +17,8 @@ package main
 import (
 	"flag"
 
+	"github.com/atomix/redis-proxy/pkg/atomix/session"
+
 	_map "github.com/atomix/redis-proxy/pkg/atomix/map"
 	service "github.com/atomix/redis-proxy/pkg/server"
 	"github.com/onosproject/onos-lib-go/pkg/logging"
@@ -42,6 +44,8 @@ func main() {
 func startServer(caPath string, keyPath string, certPath string, port int) error {
 	s := service.NewServer(service.NewServerConfig(caPath, keyPath, certPath, int16(port), true))
 	s.AddService(_map.Service{})
+	s.AddService(session.Service{})
+
 	return s.Serve(func(started string) {
 		log.Info("Started Redis Proxy Server", started)
 	})
