@@ -37,7 +37,7 @@ func main() {
 	redisEndPoint := flag.String("redis-address", "localhost:6379", "redis server address")
 	flag.Parse()
 
-	opts, err := certs.HandleCertArgs(keyPath, certPath)
+	opts, err := certs.HandleCertPaths(*caPath, *keyPath, *certPath, false)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,7 +49,7 @@ func main() {
 
 	err = startServer(*caPath, *keyPath, *certPath, *port)
 	if err != nil {
-		log.Fatal("Unable to start onos-ric ", err)
+		log.Fatal("Unable to start redis proxy server ", err)
 	}
 
 }

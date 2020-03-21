@@ -17,6 +17,8 @@ package session
 import (
 	"context"
 
+	"github.com/atomix/redis-proxy/pkg/atomix/commands"
+
 	"github.com/atomix/redis-proxy/pkg/manager"
 
 	"github.com/gomodule/redigo/redis"
@@ -60,7 +62,6 @@ func (s *Server) OpenSession(ctx context.Context, request *api.OpenSessionReques
 	log.Info("Open a new session")
 	mgr := manager.GetManager()
 	conn := mgr.GetRedisPool().Get()
-
 	sessionID, err := redis.Int64(conn.Do("CLIENT", "ID"))
 	if err != nil {
 		return &api.OpenSessionResponse{}, err
@@ -79,7 +80,23 @@ func (s *Server) OpenSession(ctx context.Context, request *api.OpenSessionReques
 
 // KeepAlive keeps a session alive
 func (s *Server) KeepAlive(ctx context.Context, request *api.KeepAliveRequest) (*api.KeepAliveResponse, error) {
-	panic("implement me")
+	mgr := manager.GetManager()
+	conn := *mgr.GetSession(int64(request.Header.GetSessionID()))
+	_, err := conn.Do(commands.PING)
+	if err != nil {
+		return &api.KeepAliveResponse{}, nil
+	}
+
+	header := headers.ResponseHeader{
+		SessionID: uint64(request.Header.SessionID),
+		Index:     uint64(request.Header.SessionID),
+	}
+
+	response := &api.KeepAliveResponse{
+		Header: &header,
+	}
+
+	return response, nil
 }
 
 // CloseSession closes a new redis session
@@ -89,22 +106,18 @@ func (s *Server) CloseSession(ctx context.Context, request *api.CloseSessionRequ
 	conn := pool.Get()
 	defer conn.Close()
 	_, err := conn.Do("CLIENT", "KILL", "ID", request.Header.SessionID)
-	log.Info("Close Session Error", request.Header.SessionID, err)
-
-	sessionID, err := redis.Int64(conn.Do("CLIENT", "ID"))
 	if err != nil {
 		return &api.CloseSessionResponse{}, err
 	}
-	log.Info("Client ID in close", sessionID)
 	header := headers.ResponseHeader{
 		SessionID: uint64(request.Header.SessionID),
 		Index:     uint64(request.Header.SessionID),
 	}
 	mgr.RemoveSession(int64(request.Header.SessionID))
-
 	response := api.CloseSessionResponse{
 		Header: &header,
 	}
+
 	return &response, nil
 
 }

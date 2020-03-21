@@ -17,6 +17,8 @@ package _map //nolint:golint
 import (
 	"context"
 
+	"github.com/atomix/redis-proxy/pkg/atomix/commands"
+
 	api "github.com/atomix/api/proto/atomix/map"
 	"github.com/atomix/redis-proxy/pkg/atomix/service"
 	"github.com/atomix/redis-proxy/pkg/server"
@@ -79,7 +81,7 @@ func (s *Server) Create(ctx context.Context, request *api.CreateRequest) (*api.C
 // Size gets the number of entries in the map
 func (s *Server) Size(ctx context.Context, request *api.SizeRequest) (*api.SizeResponse, error) {
 	log.Info("Received SizeRequest %+v", request)
-	size, err := redis.Int(s.DoCommand(request.Header, HLEN, request.Header.Name.Name))
+	size, err := redis.Int(s.DoCommand(request.Header, commands.HLEN, request.Header.Name.Name))
 	if err != nil {
 		return nil, err
 	}
@@ -93,8 +95,8 @@ func (s *Server) Size(ctx context.Context, request *api.SizeRequest) (*api.SizeR
 
 // Exists checks whether the map contains a key
 func (s *Server) Exists(ctx context.Context, request *api.ExistsRequest) (*api.ExistsResponse, error) {
-	log.Info("Received ExistsRequest %+v", request)
-	containsKey, err := redis.Bool(s.DoCommand(request.Header, HEXISTS, request.Header.Name.Name, request.Key))
+	log.Info("Received ExistsRequest:", request)
+	containsKey, err := redis.Bool(s.DoCommand(request.Header, commands.HEXISTS, request.Header.Name.Name, request.Key))
 	if err != nil {
 		return nil, err
 	}
@@ -102,42 +104,42 @@ func (s *Server) Exists(ctx context.Context, request *api.ExistsRequest) (*api.E
 	response := &api.ExistsResponse{
 		ContainsKey: containsKey,
 	}
-	log.Info("Sending ExistsResponse %+v", response)
+	log.Info("Sending ExistsResponse:", response)
 	return response, nil
 }
 
 // Put puts a key/value pair into the map
 func (s *Server) Put(ctx context.Context, request *api.PutRequest) (*api.PutResponse, error) {
-	log.Info("Received PutRequest %+v", request)
+	log.Info("Received PutRequest:", request)
 
 	log.Info(request.Header.SessionID)
-	_, err := s.DoCommand(request.Header, HSET, request.Header.Name.Name, request.Key, request.Value)
+	_, err := s.DoCommand(request.Header, commands.HSET, request.Header.Name.Name, request.Key, request.Value)
 	if err != nil {
 		return nil, err
 	}
 
 	response := &api.PutResponse{}
-	log.Info("Sending PutResponse %+v", response)
+	log.Info("Sending PutResponse:", response)
 	return response, nil
 }
 
 // Replace replaces a key/value pair in the map
 func (s *Server) Replace(ctx context.Context, request *api.ReplaceRequest) (*api.ReplaceResponse, error) {
-	log.Info("Received ReplaceRequest %+v", request)
-	_, err := s.DoCommand(request.Header, HSET, request.Header.Name.Name, request.Key, request.NewValue)
+	log.Info("Received ReplaceRequest:", request)
+	_, err := s.DoCommand(request.Header, commands.HSET, request.Header.Name.Name, request.Key, request.NewValue)
 	if err != nil {
 		return nil, err
 	}
 
 	response := &api.ReplaceResponse{}
-	log.Info("Sending ReplaceResponse %+v", response)
+	log.Info("Sending ReplaceResponse:", response)
 	return response, nil
 }
 
 // Get gets the value of a key
 func (s *Server) Get(ctx context.Context, request *api.GetRequest) (*api.GetResponse, error) {
-	log.Info("Received GetRequest %+v", request)
-	value, err := redis.Bytes(s.DoCommand(request.Header, HGET, request.Header.Name.Name, request.Key))
+	log.Info("Received GetRequest:", request)
+	value, err := redis.Bytes(s.DoCommand(request.Header, commands.HGET, request.Header.Name.Name, request.Key))
 	if err != nil {
 		return nil, err
 	}
@@ -149,14 +151,14 @@ func (s *Server) Get(ctx context.Context, request *api.GetRequest) (*api.GetResp
 	response := &api.GetResponse{
 		Value: value,
 	}
-	log.Info("Sending GetRequest %+v", response)
+	log.Info("Sending GetRequest:", response)
 	return response, nil
 }
 
 // Remove removes a key from the map
 func (s *Server) Remove(ctx context.Context, request *api.RemoveRequest) (*api.RemoveResponse, error) {
-	log.Info("Received RemoveRequest %+v", request)
-	_, err := s.DoCommand(request.Header, HDEL, request.Header.Name.Name, request.Key)
+	log.Info("Received RemoveRequest:", request)
+	_, err := s.DoCommand(request.Header, commands.HDEL, request.Header.Name.Name, request.Key)
 	if err != nil {
 		return nil, err
 	}
@@ -168,22 +170,22 @@ func (s *Server) Remove(ctx context.Context, request *api.RemoveRequest) (*api.R
 
 // Clear removes all keys from the map
 func (s *Server) Clear(ctx context.Context, request *api.ClearRequest) (*api.ClearResponse, error) {
-	log.Info("Received ClearRequest %+v", request)
+	log.Info("Received ClearRequest:", request)
 
-	keys, err := redis.Strings(s.DoCommand(request.Header, HKEYS, request.Header.Name.Name))
+	keys, err := redis.Strings(s.DoCommand(request.Header, commands.HKEYS, request.Header.Name.Name))
 	if err != nil {
 		return nil, err
 	}
 
 	for _, key := range keys {
-		_, err = s.DoCommand(request.Header, HDEL, request.Header.Name.Name, key)
+		_, err = s.DoCommand(request.Header, commands.HDEL, request.Header.Name.Name, key)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	response := &api.ClearResponse{}
-	log.Info("Sending ClearResponse %+v", response)
+	log.Info("Sending ClearResponse:", response)
 	return response, nil
 }
 
@@ -252,8 +254,8 @@ func (s *Server) Clear(ctx context.Context, request *api.ClearRequest) (*api.Cle
 
 // Entries lists all entries currently in the map
 func (s *Server) Entries(request *api.EntriesRequest, srv api.MapService_EntriesServer) error {
-	log.Info("Received EntriesRequest %+v", request)
-	entries, err := redis.StringMap(s.DoCommand(request.Header, HGETALL, request.Header.Name.Name))
+	log.Info("Received EntriesRequest:", request)
+	entries, err := redis.StringMap(s.DoCommand(request.Header, commands.HGETALL, request.Header.Name.Name))
 	if err != nil {
 		return err
 	}
@@ -271,34 +273,6 @@ func (s *Server) Entries(request *api.EntriesRequest, srv api.MapService_Entries
 
 	}
 
-	log.Info("Finished EntriesRequest %+v", request)
+	log.Info("Finished EntriesRequest:", request)
 	return nil
 }
-
-/*func getResponseStatus(status UpdateStatus) api.ResponseStatus {
-	switch status {
-	case UpdateStatus_OK:
-		return api.ResponseStatus_OK
-	case UpdateStatus_NOOP:
-		return api.ResponseStatus_NOOP
-	case UpdateStatus_PRECONDITION_FAILED:
-		return api.ResponseStatus_PRECONDITION_FAILED
-	case UpdateStatus_WRITE_LOCK:
-		return api.ResponseStatus_WRITE_LOCK
-	}
-	return api.ResponseStatus_OK
-}
-
-func getEventType(eventType ListenResponse_Type) api.EventResponse_Type {
-	switch eventType {
-	case ListenResponse_NONE:
-		return api.EventResponse_NONE
-	case ListenResponse_INSERTED:
-		return api.EventResponse_INSERTED
-	case ListenResponse_UPDATED:
-		return api.EventResponse_UPDATED
-	case ListenResponse_REMOVED:
-		return api.EventResponse_REMOVED
-	}
-	return api.EventResponse_NONE
-}*/

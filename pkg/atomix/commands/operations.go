@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package _map //nolint:golint
+package commands //nolint:golint
 
 // Redis commands
 const (
@@ -32,4 +32,6 @@ const (
 	HEXISTS = "HEXISTS"
 	// Get all of the fields in a hash
 	HKEYS = "HKEYS"
+	// PING redis server
+	PING = "PING"
 )

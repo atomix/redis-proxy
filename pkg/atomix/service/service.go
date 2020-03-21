@@ -17,25 +17,17 @@ package service
 import (
 	"context"
 
-	"github.com/atomix/redis-proxy/pkg/manager"
-	"github.com/gomodule/redigo/redis"
-	"github.com/onosproject/onos-lib-go/pkg/logging"
-
 	"github.com/atomix/api/proto/atomix/headers"
+	"github.com/atomix/redis-proxy/pkg/manager"
 )
 
 // Server redis proxy server
-type Server struct {
-}
-
-var log = logging.GetLogger("atomix", "service")
+type Server struct{}
 
 // DoCommand performs a redis command
 func (s *Server) DoCommand(header *headers.RequestHeader, commandName string, args ...interface{}) (interface{}, error) {
 	mgr := manager.GetManager()
 	conn := *mgr.GetSession(int64(header.SessionID))
-	sessionID, err := redis.Int64(conn.Do("CLIENT", "ID"))
-	log.Info("Client ID", sessionID, err)
 	response, err := conn.Do(commandName, args...)
 	return response, err
 }

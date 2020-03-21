@@ -17,6 +17,8 @@ package redisclient
 import (
 	"time"
 
+	"github.com/atomix/redis-proxy/pkg/atomix/commands"
+
 	"github.com/gomodule/redigo/redis"
 )
 
@@ -34,7 +36,7 @@ func NewPool(server string) *redis.Pool {
 			return c, err
 		},
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {
-			_, err := c.Do("PING")
+			_, err := c.Do(commands.PING)
 			return err
 		},
 	}
