@@ -14,7 +14,7 @@ coverage: build linters license_check
 
 build: # @HELP build the source code
 build: deps
-	CGO_ENABLED=1 go build -gcflags "all=-N -l" -o build/_output/redis-proxy ./cmd/redis-proxy
+	GOOS=linux GOARCH=amd64 go build -o build/_output/redis-proxy ./cmd/redis-proxy
 
 deps: # @HELP ensure that the required dependencies are in place
 	go build -v ./...

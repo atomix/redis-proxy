@@ -10,9 +10,9 @@ spec:
       proxy:
         image: atomix/redis-proxy:latest
       backend:
-        image: redis:latest
+        image: k8s.gcr.io/redis:e2e
         replicas: 1
         ports:
           - containerPort: 6379
-            name: redis
+            name: redis-server
 
