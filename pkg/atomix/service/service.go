@@ -34,5 +34,6 @@ func (s *Server) DoCommand(header *headers.RequestHeader, commandName string, ar
 
 // DoCreateService creates a service
 func (s *Server) DoCreateService(ctx context.Context) {
+	panic("Implement me")
 
 }

@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/atomix/redis-proxy/pkg/atomix/commands"
-
 	"github.com/gomodule/redigo/redis"
 )
 

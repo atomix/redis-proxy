@@ -17,9 +17,8 @@ package _map //nolint:golint
 import (
 	"context"
 
-	"github.com/atomix/redis-proxy/pkg/atomix/commands"
-
 	api "github.com/atomix/api/proto/atomix/map"
+	"github.com/atomix/redis-proxy/pkg/atomix/commands"
 	"github.com/atomix/redis-proxy/pkg/atomix/service"
 	"github.com/atomix/redis-proxy/pkg/server"
 	"github.com/gomodule/redigo/redis"
@@ -67,16 +66,12 @@ func (s *Server) Create(ctx context.Context, request *api.CreateRequest) (*api.C
 }
 
 // Close closes a session
-/*func (s *Server) Close(ctx context.Context, request *api.CloseRequest) (*api.CloseResponse, error) {
+func (s *Server) Close(ctx context.Context, request *api.CloseRequest) (*api.CloseResponse, error) {
 	log.Info("Received CloseRequest %+v", request)
-	if request.Delete {
-	}
-
-
 	response := &api.CloseResponse{}
 	log.Info("Sending CloseResponse %+v", response)
 	return response, nil
-}*/
+}
 
 // Size gets the number of entries in the map
 func (s *Server) Size(ctx context.Context, request *api.SizeRequest) (*api.SizeResponse, error) {
@@ -190,67 +185,9 @@ func (s *Server) Clear(ctx context.Context, request *api.ClearRequest) (*api.Cle
 }
 
 // Events listens for map change events
-/*func (s *Server) Events(request *api.EventRequest, srv api.MapService_EventsServer) error {
-	log.Tracef("Received EventRequest %+v", request)
-	in, err := proto.Marshal(&ListenRequest{
-		Replay: request.Replay,
-		Key:    request.Key,
-	})
-	if err != nil {
-		return err
-	}
-
-	stream := streams.NewBufferedStream()
-	if err := s.DoCommandStream(srv.Context(), opEvents, in, request.Header, stream); err != nil {
-		return err
-	}
-
-	for {
-		result, ok := stream.Receive()
-		if !ok {
-			break
-		}
-
-		if result.Failed() {
-			return result.Error
-		}
-
-		response := &ListenResponse{}
-		output := result.Value.(server.SessionOutput)
-		if err = proto.Unmarshal(output.Value.([]byte), response); err != nil {
-			return err
-		}
-
-		var eventResponse *api.EventResponse
-		switch output.Header.Type {
-		case headers.ResponseType_OPEN_STREAM:
-			eventResponse = &api.EventResponse{
-				Header: output.Header,
-			}
-		case headers.ResponseType_CLOSE_STREAM:
-			eventResponse = &api.EventResponse{
-				Header: output.Header,
-			}
-		default:
-			eventResponse = &api.EventResponse{
-				Header:  output.Header,
-				Type:    getEventType(response.Type),
-				Key:     response.Key,
-				Value:   response.Value,
-				Version: int64(response.Version),
-				Created: response.Created,
-				Updated: response.Updated,
-			}
-		}
-
-		log.Tracef("Sending EventResponse %+v", eventResponse)
-		if err = srv.Send(eventResponse); err != nil {
-			return err
-		}
-	}
-	log.Tracef("Finished EventRequest %+v", request)
-	return nil
-}*/
+func (s *Server) Events(request *api.EventRequest, srv api.MapService_EventsServer) error {
+	panic("Implement me")
+}
 
 // Entries lists all entries currently in the map
 func (s *Server) Entries(request *api.EntriesRequest, srv api.MapService_EntriesServer) error {

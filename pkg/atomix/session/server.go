@@ -17,17 +17,13 @@ package session
 import (
 	"context"
 
-	"github.com/atomix/redis-proxy/pkg/atomix/commands"
-
-	"github.com/atomix/redis-proxy/pkg/manager"
-
-	"github.com/gomodule/redigo/redis"
-
-	"github.com/onosproject/onos-lib-go/pkg/logging"
-
 	"github.com/atomix/api/proto/atomix/headers"
 	api "github.com/atomix/api/proto/atomix/session"
+	"github.com/atomix/redis-proxy/pkg/atomix/commands"
+	"github.com/atomix/redis-proxy/pkg/manager"
 	service "github.com/atomix/redis-proxy/pkg/server"
+	"github.com/gomodule/redigo/redis"
+	"github.com/onosproject/onos-lib-go/pkg/logging"
 	"google.golang.org/grpc"
 )
 
@@ -59,7 +55,7 @@ type Server struct {
 
 // OpenSession opens a new redis session
 func (s *Server) OpenSession(ctx context.Context, request *api.OpenSessionRequest) (*api.OpenSessionResponse, error) {
-	log.Info("Open a new session")
+	log.Info("Open a new redis session")
 	mgr := manager.GetManager()
 	conn := mgr.GetRedisPool().Get()
 	sessionID, err := redis.Int64(conn.Do("CLIENT", "ID"))
@@ -80,6 +76,7 @@ func (s *Server) OpenSession(ctx context.Context, request *api.OpenSessionReques
 
 // KeepAlive keeps a session alive
 func (s *Server) KeepAlive(ctx context.Context, request *api.KeepAliveRequest) (*api.KeepAliveResponse, error) {
+	log.Info("Keep alive redis session:", request.Header.GetSessionID())
 	mgr := manager.GetManager()
 	conn := *mgr.GetSession(int64(request.Header.GetSessionID()))
 	_, err := conn.Do(commands.PING)
@@ -95,12 +92,12 @@ func (s *Server) KeepAlive(ctx context.Context, request *api.KeepAliveRequest) (
 	response := &api.KeepAliveResponse{
 		Header: &header,
 	}
-
 	return response, nil
 }
 
 // CloseSession closes a new redis session
 func (s *Server) CloseSession(ctx context.Context, request *api.CloseSessionRequest) (*api.CloseSessionResponse, error) {
+	log.Info("Closing redis session:", request.Header.SessionID)
 	mgr := manager.GetManager()
 	pool := mgr.GetRedisPool()
 	conn := pool.Get()
