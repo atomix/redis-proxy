@@ -17,7 +17,10 @@ package main
 import (
 	"flag"
 
+	"github.com/onosproject/onos-lib-go/pkg/certs"
+
 	"github.com/atomix/redis-proxy/pkg/atomix/session"
+	"github.com/atomix/redis-proxy/pkg/manager"
 
 	_map "github.com/atomix/redis-proxy/pkg/atomix/map"
 	service "github.com/atomix/redis-proxy/pkg/server"
@@ -31,9 +34,20 @@ func main() {
 	keyPath := flag.String("keyPath", "", "path to client private key")
 	certPath := flag.String("certPath", "", "path to client certificate")
 	port := flag.Int("port", 5150, "redis proxy port")
-	//redisAddress := flag.String("redis-address", "redis:6379", "redis server address")
+	redisEndPoint := flag.String("redis-address", "localhost:6379", "redis server address")
 	flag.Parse()
-	err := startServer(*caPath, *keyPath, *certPath, *port)
+
+	opts, err := certs.HandleCertArgs(keyPath, certPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = manager.NewManager(*redisEndPoint, opts)
+	if err != nil {
+		log.Fatal("Unable to start redis proxy manager")
+	}
+
+	err = startServer(*caPath, *keyPath, *certPath, *port)
 	if err != nil {
 		log.Fatal("Unable to start onos-ric ", err)
 	}

@@ -18,10 +18,8 @@ import (
 	"context"
 
 	api "github.com/atomix/api/proto/atomix/map"
-	"github.com/atomix/redis-proxy/pkg/redisclient"
-
-	"github.com/atomix/redis-proxy/pkg/atomix/server"
-	service "github.com/atomix/redis-proxy/pkg/server"
+	"github.com/atomix/redis-proxy/pkg/atomix/service"
+	"github.com/atomix/redis-proxy/pkg/server"
 	"github.com/gomodule/redigo/redis"
 	"github.com/onosproject/onos-lib-go/pkg/logging"
 	"google.golang.org/grpc"
@@ -30,38 +28,36 @@ import (
 var log = logging.GetLogger("redis", "map")
 
 // NewService returns a new Service
-func NewService() (service.Service, error) {
+func NewService() (server.Service, error) {
 	return &Service{}, nil
 }
 
 // Service is an implementation of map api service.
 type Service struct {
-	service.Service
+	server.Service
 }
 
 // Register registers the map service
 func (s Service) Register(r *grpc.Server) {
 	api.RegisterMapServiceServer(r, newServer())
-
 }
 
 func newServer() api.MapServiceServer {
 	return &Server{
-		Server: &server.Server{
-			RedisPool: redisclient.NewPool("localhost:6379"),
-		},
+		Server: &service.Server{},
 	}
 }
 
 // Server is an implementation of MapServiceServer for the map primitive
 type Server struct {
 	api.MapServiceServer
-	*server.Server
+	*service.Server
 }
 
 // Create opens a new session
 func (s *Server) Create(ctx context.Context, request *api.CreateRequest) (*api.CreateResponse, error) {
 	log.Info("Received CreateRequest %+v", request)
+	s.DoCreateService(ctx)
 
 	response := &api.CreateResponse{}
 	log.Info("Sending CreateResponse %+v", response)
@@ -83,7 +79,7 @@ func (s *Server) Create(ctx context.Context, request *api.CreateRequest) (*api.C
 // Size gets the number of entries in the map
 func (s *Server) Size(ctx context.Context, request *api.SizeRequest) (*api.SizeResponse, error) {
 	log.Info("Received SizeRequest %+v", request)
-	size, err := redis.Int(s.DoCommand(HLEN, request.Header.Name.Name))
+	size, err := redis.Int(s.DoCommand(request.Header, HLEN, request.Header.Name.Name))
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +94,7 @@ func (s *Server) Size(ctx context.Context, request *api.SizeRequest) (*api.SizeR
 // Exists checks whether the map contains a key
 func (s *Server) Exists(ctx context.Context, request *api.ExistsRequest) (*api.ExistsResponse, error) {
 	log.Info("Received ExistsRequest %+v", request)
-	containsKey, err := redis.Bool(s.DoCommand(HEXISTS, request.Header.Name.Name, request.Key))
+	containsKey, err := redis.Bool(s.DoCommand(request.Header, HEXISTS, request.Header.Name.Name, request.Key))
 	if err != nil {
 		return nil, err
 	}
@@ -114,20 +110,21 @@ func (s *Server) Exists(ctx context.Context, request *api.ExistsRequest) (*api.E
 func (s *Server) Put(ctx context.Context, request *api.PutRequest) (*api.PutResponse, error) {
 	log.Info("Received PutRequest %+v", request)
 
-	_, err := s.DoCommand(HSET, request.Header.Name.Name, request.Key, request.Value)
+	log.Info(request.Header.SessionID)
+	_, err := s.DoCommand(request.Header, HSET, request.Header.Name.Name, request.Key, request.Value)
 	if err != nil {
 		return nil, err
 	}
 
 	response := &api.PutResponse{}
-	log.Debug("Sending PutResponse %+v", response)
+	log.Info("Sending PutResponse %+v", response)
 	return response, nil
 }
 
 // Replace replaces a key/value pair in the map
 func (s *Server) Replace(ctx context.Context, request *api.ReplaceRequest) (*api.ReplaceResponse, error) {
 	log.Info("Received ReplaceRequest %+v", request)
-	_, err := s.DoCommand(HSET, request.Header.Name.Name, request.Key, request.NewValue)
+	_, err := s.DoCommand(request.Header, HSET, request.Header.Name.Name, request.Key, request.NewValue)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +137,7 @@ func (s *Server) Replace(ctx context.Context, request *api.ReplaceRequest) (*api
 // Get gets the value of a key
 func (s *Server) Get(ctx context.Context, request *api.GetRequest) (*api.GetResponse, error) {
 	log.Info("Received GetRequest %+v", request)
-	value, err := redis.Bytes(s.DoCommand(HGET, request.Header.Name.Name, request.Key))
+	value, err := redis.Bytes(s.DoCommand(request.Header, HGET, request.Header.Name.Name, request.Key))
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +156,7 @@ func (s *Server) Get(ctx context.Context, request *api.GetRequest) (*api.GetResp
 // Remove removes a key from the map
 func (s *Server) Remove(ctx context.Context, request *api.RemoveRequest) (*api.RemoveResponse, error) {
 	log.Info("Received RemoveRequest %+v", request)
-	_, err := s.DoCommand(HDEL, request.Header.Name.Name, request.Key)
+	_, err := s.DoCommand(request.Header, HDEL, request.Header.Name.Name, request.Key)
 	if err != nil {
 		return nil, err
 	}
@@ -173,13 +170,13 @@ func (s *Server) Remove(ctx context.Context, request *api.RemoveRequest) (*api.R
 func (s *Server) Clear(ctx context.Context, request *api.ClearRequest) (*api.ClearResponse, error) {
 	log.Info("Received ClearRequest %+v", request)
 
-	keys, err := redis.Strings(s.DoCommand(HKEYS, request.Header.Name.Name))
+	keys, err := redis.Strings(s.DoCommand(request.Header, HKEYS, request.Header.Name.Name))
 	if err != nil {
 		return nil, err
 	}
 
 	for _, key := range keys {
-		_, err = s.DoCommand(HDEL, request.Header.Name.Name, key)
+		_, err = s.DoCommand(request.Header, HDEL, request.Header.Name.Name, key)
 		if err != nil {
 			return nil, err
 		}
@@ -256,7 +253,7 @@ func (s *Server) Clear(ctx context.Context, request *api.ClearRequest) (*api.Cle
 // Entries lists all entries currently in the map
 func (s *Server) Entries(request *api.EntriesRequest, srv api.MapService_EntriesServer) error {
 	log.Info("Received EntriesRequest %+v", request)
-	entries, err := redis.StringMap(s.DoCommand(HGETALL, request.Header.Name.Name))
+	entries, err := redis.StringMap(s.DoCommand(request.Header, HGETALL, request.Header.Name.Name))
 	if err != nil {
 		return err
 	}

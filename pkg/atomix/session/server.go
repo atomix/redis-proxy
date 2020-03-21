@@ -17,14 +17,19 @@ package session
 import (
 	"context"
 
-	"github.com/atomix/redis-proxy/pkg/redisclient"
+	"github.com/atomix/redis-proxy/pkg/manager"
 
-	api "github.com/atomix/api/proto/atomix/session"
-	"github.com/atomix/redis-proxy/pkg/atomix/server"
-	service "github.com/atomix/redis-proxy/pkg/server"
 	"github.com/gomodule/redigo/redis"
+
+	"github.com/onosproject/onos-lib-go/pkg/logging"
+
+	"github.com/atomix/api/proto/atomix/headers"
+	api "github.com/atomix/api/proto/atomix/session"
+	service "github.com/atomix/redis-proxy/pkg/server"
 	"google.golang.org/grpc"
 )
+
+var log = logging.GetLogger("redis", "session")
 
 // NewService returns a new Service
 func NewService() (service.Service, error) {
@@ -42,30 +47,64 @@ type Service struct {
 }
 
 func newServer() api.SessionServiceServer {
-	return &Server{
-		Server: &server.Server{
-			RedisPool: redisclient.NewPool("localhost:6379"),
-		},
-	}
+	return &Server{}
 }
 
 // Server is an implementation of SessionServiceServer for session management
 type Server struct {
-	*server.Server
-	RedisPool *redis.Pool
+	api.SessionServiceServer
 }
 
 // OpenSession opens a new redis session
-func (*Server) OpenSession(ctx context.Context, request *api.OpenSessionRequest) (*api.OpenSessionResponse, error) {
-	panic("implement me")
+func (s *Server) OpenSession(ctx context.Context, request *api.OpenSessionRequest) (*api.OpenSessionResponse, error) {
+	log.Info("Open a new session")
+	mgr := manager.GetManager()
+	conn := mgr.GetRedisPool().Get()
+
+	sessionID, err := redis.Int64(conn.Do("CLIENT", "ID"))
+	if err != nil {
+		return &api.OpenSessionResponse{}, err
+	}
+	mgr.AddSession(sessionID, &conn)
+	header := headers.ResponseHeader{
+		SessionID: uint64(sessionID),
+		Index:     uint64(sessionID),
+	}
+	response := api.OpenSessionResponse{
+		Header: &header,
+	}
+
+	return &response, nil
 }
 
 // KeepAlive keeps a session alive
-func (*Server) KeepAlive(ctx context.Context, request *api.KeepAliveRequest) (*api.KeepAliveResponse, error) {
+func (s *Server) KeepAlive(ctx context.Context, request *api.KeepAliveRequest) (*api.KeepAliveResponse, error) {
 	panic("implement me")
 }
 
 // CloseSession closes a new redis session
-func (*Server) CloseSession(ctx context.Context, request *api.CloseSessionRequest) (*api.CloseSessionResponse, error) {
-	panic("implement me")
+func (s *Server) CloseSession(ctx context.Context, request *api.CloseSessionRequest) (*api.CloseSessionResponse, error) {
+	mgr := manager.GetManager()
+	pool := mgr.GetRedisPool()
+	conn := pool.Get()
+	defer conn.Close()
+	_, err := conn.Do("CLIENT", "KILL", "ID", request.Header.SessionID)
+	log.Info("Close Session Error", request.Header.SessionID, err)
+
+	sessionID, err := redis.Int64(conn.Do("CLIENT", "ID"))
+	if err != nil {
+		return &api.CloseSessionResponse{}, err
+	}
+	log.Info("Client ID in close", sessionID)
+	header := headers.ResponseHeader{
+		SessionID: uint64(request.Header.SessionID),
+		Index:     uint64(request.Header.SessionID),
+	}
+	mgr.RemoveSession(int64(request.Header.SessionID))
+
+	response := api.CloseSessionResponse{
+		Header: &header,
+	}
+	return &response, nil
+
 }
