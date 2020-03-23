@@ -10,5 +10,5 @@ spec:
       proxy:
         image: atomix/redis-proxy:latest
       backend:
-        image: redis
+        image: redis:latest
         replicas: 1 

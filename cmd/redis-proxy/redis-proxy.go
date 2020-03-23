@@ -33,8 +33,8 @@ func main() {
 	caPath := flag.String("caPath", "", "path to CA certificate")
 	keyPath := flag.String("keyPath", "", "path to client private key")
 	certPath := flag.String("certPath", "", "path to client certificate")
-	port := flag.Int("port", 5150, "redis proxy port")
-	redisEndPoint := flag.String("redis-address", "localhost:6379", "redis server address")
+	port := flag.Int("port", 5678, "redis proxy port")
+	redisEndPoint := flag.String("redis-address", "redis-proxy-1-hs:6379", "redis server address")
 	flag.Parse()
 
 	opts, err := certs.HandleCertPaths(*caPath, *keyPath, *certPath, false)
