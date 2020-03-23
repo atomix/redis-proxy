@@ -11,4 +11,6 @@ spec:
         image: atomix/redis-proxy:latest
       backend:
         image: redis:latest
-        replicas: 1 
+        replicas: 1
+        probeport: 6379
+
