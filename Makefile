@@ -28,12 +28,6 @@ license_check: # @HELP examine and ensure license headers exist
 	@if [ ! -d "../build-tools" ]; then cd .. && git clone https://github.com/onosproject/build-tools.git; fi
 	./../build-tools/licensing/boilerplate.py -v --rootdir=${CURDIR}
 
-protos: # @HELP compile the protobuf files (using protoc-go Docker)
-	docker run -it -v `pwd`:/go/src/github.com/atomix/redis-proxy \
-		-w /go/src/github.com/atomix/redis-proxy \
-		--entrypoint build/bin/compile-protos.sh \
-		onosproject/protoc-go:stable
-
 image: # @HELP build redis-proxy Docker image
 image: build
 	docker build . -f build/docker/Dockerfile -t atomix/redis-proxy:${ATOMIX_REDIS_PROXY_VERSION}
