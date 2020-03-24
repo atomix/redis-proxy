@@ -37,7 +37,7 @@ func main() {
 	redisEndPoint := flag.String("redis-address", "redis-proxy-1-hs:6379", "redis server address")
 	flag.Parse()
 
-	opts, err := certs.HandleCertPaths(*caPath, *keyPath, *certPath, false)
+	opts, err := certs.HandleCertPaths(*caPath, *keyPath, *certPath, true)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -56,7 +56,7 @@ func main() {
 
 // Creates gRPC server and registers various services; then serves.
 func startServer(caPath string, keyPath string, certPath string, port int) error {
-	s := service.NewServer(service.NewServerConfig(caPath, keyPath, certPath, int16(port), true))
+	s := service.NewServer(service.NewServerConfig(caPath, keyPath, certPath, int16(port), false))
 	s.AddService(_map.Service{})
 	s.AddService(session.Service{})
 

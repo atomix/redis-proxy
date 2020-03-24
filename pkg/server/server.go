@@ -21,7 +21,6 @@ import (
 
 	"github.com/onosproject/onos-lib-go/pkg/certs"
 	"github.com/onosproject/onos-lib-go/pkg/logging"
-	"google.golang.org/grpc/credentials"
 
 	"google.golang.org/grpc"
 )
@@ -115,8 +114,9 @@ func (s *Server) Serve(started func(string)) error {
 	if err != nil {
 		return err
 	}
-	opts := []grpc.ServerOption{grpc.Creds(credentials.NewTLS(tlsCfg))}
-	server := grpc.NewServer(opts...)
+	// TODO enable TLS later
+	//opts := []grpc.ServerOption{grpc.Creds(credentials.NewTLS(tlsCfg))}
+	server := grpc.NewServer()
 	for i := range s.services {
 		s.services[i].Register(server)
 	}
