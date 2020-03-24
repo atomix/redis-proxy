@@ -17,6 +17,7 @@ package _map //nolint:golint
 import (
 	"context"
 
+	"github.com/atomix/api/proto/atomix/headers"
 	api "github.com/atomix/api/proto/atomix/map"
 	"github.com/atomix/redis-proxy/pkg/atomix/commands"
 	"github.com/atomix/redis-proxy/pkg/atomix/service"
@@ -59,8 +60,14 @@ type Server struct {
 func (s *Server) Create(ctx context.Context, request *api.CreateRequest) (*api.CreateResponse, error) {
 	log.Info("Received CreateRequest %+v", request)
 	s.DoCreateService(ctx)
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+	}
 
-	response := &api.CreateResponse{}
+	response := &api.CreateResponse{
+		Header: responseHeader,
+	}
 	log.Info("Sending CreateResponse %+v", response)
 	return response, nil
 }
@@ -68,7 +75,13 @@ func (s *Server) Create(ctx context.Context, request *api.CreateRequest) (*api.C
 // Close closes a session
 func (s *Server) Close(ctx context.Context, request *api.CloseRequest) (*api.CloseResponse, error) {
 	log.Info("Received CloseRequest %+v", request)
-	response := &api.CloseResponse{}
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+	}
+	response := &api.CloseResponse{
+		Header: responseHeader,
+	}
 	log.Info("Sending CloseResponse %+v", response)
 	return response, nil
 }
@@ -80,9 +93,14 @@ func (s *Server) Size(ctx context.Context, request *api.SizeRequest) (*api.SizeR
 	if err != nil {
 		return nil, err
 	}
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+	}
 
 	response := &api.SizeResponse{
-		Size_: int32(size),
+		Header: responseHeader,
+		Size_:  int32(size),
 	}
 	log.Info("Sending SizeResponse %+v", response)
 	return response, nil
@@ -95,8 +113,13 @@ func (s *Server) Exists(ctx context.Context, request *api.ExistsRequest) (*api.E
 	if err != nil {
 		return nil, err
 	}
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+	}
 
 	response := &api.ExistsResponse{
+		Header:      responseHeader,
 		ContainsKey: containsKey,
 	}
 	log.Info("Sending ExistsResponse:", response)
@@ -112,8 +135,14 @@ func (s *Server) Put(ctx context.Context, request *api.PutRequest) (*api.PutResp
 	if err != nil {
 		return nil, err
 	}
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+	}
 
-	response := &api.PutResponse{}
+	response := &api.PutResponse{
+		Header: responseHeader,
+	}
 	log.Info("Sending PutResponse:", response)
 	return response, nil
 }
@@ -126,7 +155,14 @@ func (s *Server) Replace(ctx context.Context, request *api.ReplaceRequest) (*api
 		return nil, err
 	}
 
-	response := &api.ReplaceResponse{}
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+	}
+
+	response := &api.ReplaceResponse{
+		Header: responseHeader,
+	}
 	log.Info("Sending ReplaceResponse:", response)
 	return response, nil
 }
@@ -142,9 +178,14 @@ func (s *Server) Get(ctx context.Context, request *api.GetRequest) (*api.GetResp
 	if value == nil {
 		return nil, err
 	}
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+	}
 
 	response := &api.GetResponse{
-		Value: value,
+		Header: responseHeader,
+		Value:  value,
 	}
 	log.Info("Sending GetRequest:", response)
 	return response, nil
@@ -158,7 +199,14 @@ func (s *Server) Remove(ctx context.Context, request *api.RemoveRequest) (*api.R
 		return nil, err
 	}
 
-	response := &api.RemoveResponse{}
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+	}
+
+	response := &api.RemoveResponse{
+		Header: responseHeader,
+	}
 	log.Info("Sending RemoveRequest %+v", response)
 	return response, nil
 }
@@ -178,8 +226,14 @@ func (s *Server) Clear(ctx context.Context, request *api.ClearRequest) (*api.Cle
 			return nil, err
 		}
 	}
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+	}
 
-	response := &api.ClearResponse{}
+	response := &api.ClearResponse{
+		Header: responseHeader,
+	}
 	log.Info("Sending ClearResponse:", response)
 	return response, nil
 }

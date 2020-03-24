@@ -32,6 +32,9 @@ image: # @HELP build redis-proxy Docker image
 image: build
 	docker build . -f build/docker/Dockerfile -t atomix/redis-proxy:${ATOMIX_REDIS_PROXY_VERSION}
 
+kind: image
+	kind load docker-image atomix/redis-proxy:${ATOMIX_REDIS_PROXY_VERSION}
+	
 
 all: test
 
