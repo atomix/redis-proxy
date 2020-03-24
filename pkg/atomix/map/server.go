@@ -59,7 +59,6 @@ type Server struct {
 // Create opens a new session
 func (s *Server) Create(ctx context.Context, request *api.CreateRequest) (*api.CreateResponse, error) {
 	log.Info("Received CreateRequest %+v", request)
-	s.DoCreateService(ctx)
 	responseHeader := &headers.ResponseHeader{
 		SessionID: request.Header.SessionID,
 		Status:    headers.ResponseStatus_OK,
@@ -184,8 +183,9 @@ func (s *Server) Get(ctx context.Context, request *api.GetRequest) (*api.GetResp
 	}
 
 	response := &api.GetResponse{
-		Header: responseHeader,
-		Value:  value,
+		Header:  responseHeader,
+		Value:   value,
+		Version: int64(request.Header.SessionID),
 	}
 	log.Info("Sending GetRequest:", response)
 	return response, nil
@@ -251,10 +251,17 @@ func (s *Server) Entries(request *api.EntriesRequest, srv api.MapService_Entries
 		return err
 	}
 
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+	}
+
 	for key, value := range entries {
 		entryResponse := &api.EntriesResponse{
-			Key:   key,
-			Value: []byte(value),
+			Header:  responseHeader,
+			Key:     key,
+			Value:   []byte(value),
+			Version: int64(request.Header.SessionID),
 		}
 
 		err = srv.Send(entryResponse)
