@@ -78,6 +78,7 @@ func (s *Server) Close(ctx context.Context, request *api.CloseRequest) (*api.Clo
 		SessionID: request.Header.SessionID,
 		Status:    headers.ResponseStatus_OK,
 	}
+
 	response := &api.CloseResponse{
 		Header: responseHeader,
 	}
@@ -250,13 +251,29 @@ func (s *Server) Entries(request *api.EntriesRequest, srv api.MapService_Entries
 	if err != nil {
 		return err
 	}
-
+	// Opening entry response
 	responseHeader := &headers.ResponseHeader{
 		SessionID: request.Header.SessionID,
 		Status:    headers.ResponseStatus_OK,
+		Type:      headers.ResponseType_OPEN_STREAM,
 	}
 
+	entryResponse := &api.EntriesResponse{
+		Header: responseHeader,
+	}
+
+	err = srv.Send(entryResponse)
+	if err != nil {
+		return err
+	}
+
+	// Map entry responses
 	for key, value := range entries {
+		responseHeader = &headers.ResponseHeader{
+			SessionID: request.Header.SessionID,
+			Status:    headers.ResponseStatus_OK,
+			Type:      headers.ResponseType_RESPONSE,
+		}
 		entryResponse := &api.EntriesResponse{
 			Header:  responseHeader,
 			Key:     key,
@@ -269,6 +286,21 @@ func (s *Server) Entries(request *api.EntriesRequest, srv api.MapService_Entries
 			return err
 		}
 
+	}
+
+	// Closing entry response
+	responseHeader = &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+		Type:      headers.ResponseType_CLOSE_STREAM,
+	}
+	entryResponse = &api.EntriesResponse{
+		Header: responseHeader,
+	}
+
+	err = srv.Send(entryResponse)
+	if err != nil {
+		return err
 	}
 
 	log.Info("Finished EntriesRequest:", request)
