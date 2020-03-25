@@ -16,6 +16,10 @@ package commands
 
 // Redis commands
 const (
+	// Get the value of key
+	GET = "GET"
+	// Set the value of a key
+	SET = "SET"
 	// Get the value of a hash field
 	HGET = "HGET"
 	// Get the values of all the given hash fields

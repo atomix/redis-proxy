@@ -91,7 +91,7 @@ func (s *Server) Close(ctx context.Context, request *api.CloseRequest) (*api.Clo
 
 // Size gets the number of entries in the map
 func (s *Server) Size(ctx context.Context, request *api.SizeRequest) (*api.SizeResponse, error) {
-	log.Info("Received SizeRequest %+v", request)
+	log.Info("Received SizeRequest:", request)
 	size, err := redis.Int(s.DoCommand(request.Header, commands.HLEN, request.Header.Name.Name))
 	if err != nil {
 		return nil, err
@@ -105,7 +105,7 @@ func (s *Server) Size(ctx context.Context, request *api.SizeRequest) (*api.SizeR
 		Header: responseHeader,
 		Size_:  int32(size),
 	}
-	log.Info("Sending SizeResponse %+v", response)
+	log.Info("Sending SizeResponse:", response)
 	return response, nil
 }
 
@@ -132,8 +132,6 @@ func (s *Server) Exists(ctx context.Context, request *api.ExistsRequest) (*api.E
 // Put puts a key/value pair into the map
 func (s *Server) Put(ctx context.Context, request *api.PutRequest) (*api.PutResponse, error) {
 	log.Info("Received PutRequest:", request)
-
-	log.Info(request.Header.SessionID)
 	_, err := s.DoCommand(request.Header, commands.HSET, request.Header.Name.Name, request.Key, request.Value)
 	if err != nil {
 		return nil, err
@@ -211,7 +209,7 @@ func (s *Server) Remove(ctx context.Context, request *api.RemoveRequest) (*api.R
 	response := &api.RemoveResponse{
 		Header: responseHeader,
 	}
-	log.Info("Sending RemoveRequest %+v", response)
+	log.Info("Sending RemoveRequest:", response)
 	return response, nil
 }
 
