@@ -113,12 +113,63 @@ func (s *Server) Get(ctx context.Context, request *api.GetRequest) (*api.GetResp
 
 // Increment increments the value of the counter by a delta
 func (s *Server) Increment(ctx context.Context, request *api.IncrementRequest) (*api.IncrementResponse, error) {
-	panic("Implement me")
+	log.Info("Received IncrementRequest:", request)
+	prevValue, err := redis.Int64(s.DoCommand(request.Header, commands.GET, request.Header.Name.Name))
+	if err != nil {
+		return nil, err
+	}
+	_, err = s.DoCommand(request.Header, commands.INCRBY, request.Header.Name.Name, request.Delta)
+	if err != nil {
+		return nil, err
+	}
+
+	nextValue, err := redis.Int64(s.DoCommand(request.Header, commands.GET, request.Header.Name.Name))
+	if err != nil {
+		return nil, err
+	}
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+	}
+	response := &api.IncrementResponse{
+		Header:        responseHeader,
+		PreviousValue: prevValue,
+		NextValue:     nextValue,
+	}
+
+	log.Info("Sent IncrementResponse", response)
+	return response, nil
+
 }
 
 // Decrement decrements the value of the counter by a delta
 func (s *Server) Decrement(ctx context.Context, request *api.DecrementRequest) (*api.DecrementResponse, error) {
-	panic("Implement me")
+	log.Info("Received DecrementRequest:", request)
+	prevValue, err := redis.Int64(s.DoCommand(request.Header, commands.GET, request.Header.Name.Name))
+	if err != nil {
+		return nil, err
+	}
+	_, err = s.DoCommand(request.Header, commands.DECRBY, request.Header.Name.Name, request.Delta)
+	if err != nil {
+		return nil, err
+	}
+
+	nextValue, err := redis.Int64(s.DoCommand(request.Header, commands.GET, request.Header.Name.Name))
+	if err != nil {
+		return nil, err
+	}
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+	}
+	response := &api.DecrementResponse{
+		Header:        responseHeader,
+		PreviousValue: prevValue,
+		NextValue:     nextValue,
+	}
+
+	log.Info("Sent DecrementResponse", response)
+	return response, nil
 }
 
 // CheckAndSet updates the value of the counter conditionally

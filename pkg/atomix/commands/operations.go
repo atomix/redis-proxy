@@ -16,6 +16,10 @@ package commands
 
 // Redis commands
 const (
+	// Decrements the number stored at key by decrement
+	DECRBY = "DECRBY"
+	// Increments the number stored at key by increment.
+	INCRBY = "INCRBY"
 	// Get the value of key
 	GET = "GET"
 	// Set the value of a key
