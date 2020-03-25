@@ -174,7 +174,28 @@ func (s *Server) Decrement(ctx context.Context, request *api.DecrementRequest) (
 
 // CheckAndSet updates the value of the counter conditionally
 func (s *Server) CheckAndSet(ctx context.Context, request *api.CheckAndSetRequest) (*api.CheckAndSetResponse, error) {
-	panic("Implement me")
+	log.Info("Received CheckAndSetRequest", request)
+	current, err := redis.Int64(s.DoCommand(request.Header, commands.GET, request.Header.Name.Name))
+	if err != nil {
+		return nil, err
+	}
+	if current == request.Expect {
+		_, err := s.DoCommand(request.Header, commands.SET, request.Header.Name.Name, request.Update)
+		if err != nil {
+			return nil, err
+		}
+
+		response := &api.CheckAndSetResponse{
+			Succeeded: true,
+		}
+
+		return response, nil
+	}
+	response := &api.CheckAndSetResponse{
+		Succeeded: false,
+	}
+
+	return response, nil
 }
 
 // Close closes a session
