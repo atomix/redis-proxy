@@ -16,6 +16,7 @@ package session
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/atomix/api/proto/atomix/headers"
 	api "github.com/atomix/api/proto/atomix/session"
@@ -79,9 +80,12 @@ func (s *Server) KeepAlive(ctx context.Context, request *api.KeepAliveRequest) (
 	log.Info("Keep alive redis session:", request.Header.GetSessionID())
 	mgr := manager.GetManager()
 	conn := *mgr.GetSession(int64(request.Header.GetSessionID()))
+	if conn == nil {
+		return nil, fmt.Errorf("connection does not exist")
+	}
 	_, err := conn.Do(commands.PING)
 	if err != nil {
-		return &api.KeepAliveResponse{}, nil
+		return &api.KeepAliveResponse{}, err
 	}
 
 	header := headers.ResponseHeader{
@@ -99,8 +103,7 @@ func (s *Server) KeepAlive(ctx context.Context, request *api.KeepAliveRequest) (
 func (s *Server) CloseSession(ctx context.Context, request *api.CloseSessionRequest) (*api.CloseSessionResponse, error) {
 	log.Info("Closing redis session:", request.Header.SessionID)
 	mgr := manager.GetManager()
-	pool := mgr.GetRedisPool()
-	conn := pool.Get()
+	conn := mgr.GetRedisPool().Get()
 	defer conn.Close()
 	_, err := conn.Do("CLIENT", "KILL", "ID", request.Header.SessionID)
 	if err != nil {
@@ -114,7 +117,5 @@ func (s *Server) CloseSession(ctx context.Context, request *api.CloseSessionRequ
 	response := api.CloseSessionResponse{
 		Header: &header,
 	}
-
 	return &response, nil
-
 }

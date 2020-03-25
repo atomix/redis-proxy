@@ -46,9 +46,12 @@ func (m *Manager) RemoveSession(sessionID int64) {
 	delete(m.sessions, sessionID)
 }
 
-// GetSession returns a session based on a given session ID
+// GetSession returns a connection based on a given session ID
 func (m *Manager) GetSession(sessionID int64) *redis.Conn {
-	return m.sessions[sessionID]
+	if conn, ok := m.sessions[sessionID]; ok {
+		return conn
+	}
+	return nil
 }
 
 // AddSession adds a session to list of sessions
