@@ -16,14 +16,21 @@ package commands
 
 // Redis commands
 const (
+
+	// Get the length of a list
+	LLEN = "LLEN"
+	// Append one or more elements to the end of a list
+	RPUSH = "RPUSH"
+
 	// Decrements the number stored at key by decrement
 	DECRBY = "DECRBY"
-	// Increments the number stored at key by increment.
+	// Increments the number stored at key by increment
 	INCRBY = "INCRBY"
 	// Get the value of key
 	GET = "GET"
 	// Set the value of a key
 	SET = "SET"
+
 	// Get the value of a hash field
 	HGET = "HGET"
 	// Get the values of all the given hash fields
@@ -40,6 +47,7 @@ const (
 	HEXISTS = "HEXISTS"
 	// Get all of the fields in a hash
 	HKEYS = "HKEYS"
+
 	// PING redis server
 	PING = "PING"
 )

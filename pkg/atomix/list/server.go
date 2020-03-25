@@ -17,6 +17,10 @@ package list
 import (
 	"context"
 
+	"github.com/gomodule/redigo/redis"
+
+	"github.com/atomix/redis-proxy/pkg/atomix/commands"
+
 	"github.com/atomix/api/proto/atomix/headers"
 	api "github.com/atomix/api/proto/atomix/list"
 	"github.com/atomix/redis-proxy/pkg/atomix/service"
@@ -76,7 +80,21 @@ func (s *Server) Close(ctx context.Context, request *api.CloseRequest) (*api.Clo
 
 // Size gets the number of elements in the list
 func (s *Server) Size(ctx context.Context, request *api.SizeRequest) (*api.SizeResponse, error) {
-	panic("Implement me")
+	log.Info("Received SizeRequest:", request)
+	size, err := redis.Int64(s.DoCommand(request.Header, commands.LLEN, request.Header.Name.Name))
+	if err != nil {
+		return nil, err
+	}
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+	}
+	response := &api.SizeResponse{
+		Header: responseHeader,
+		Size_:  int32(size),
+	}
+	log.Info("Sent AppendResponse", response)
+	return response, nil
 }
 
 // Contains checks whether the list contains a value
@@ -86,7 +104,21 @@ func (s *Server) Contains(ctx context.Context, request *api.ContainsRequest) (*a
 
 // Append adds a value to the end of the list
 func (s *Server) Append(ctx context.Context, request *api.AppendRequest) (*api.AppendResponse, error) {
-	panic("Implement me")
+	log.Info("Received AppendRequest:", request)
+	_, err := s.DoCommand(request.Header, commands.RPUSH, request.Header.Name.Name, request.Value)
+	if err != nil {
+		return nil, err
+	}
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+	}
+	response := &api.AppendResponse{
+		Header: responseHeader,
+		Status: api.ResponseStatus_OK,
+	}
+	log.Info("Sent AppendResponse", response)
+	return response, nil
 }
 
 // Insert inserts a value at a specific index
