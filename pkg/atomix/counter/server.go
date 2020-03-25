@@ -210,6 +210,6 @@ func (s *Server) Close(ctx context.Context, request *api.CloseRequest) (*api.Clo
 	response := &api.CloseResponse{
 		Header: responseHeader,
 	}
-	log.Info("Sending CloseResponse %+v", response)
+	log.Info("Sending CloseResponse:", response)
 	return response, nil
 }

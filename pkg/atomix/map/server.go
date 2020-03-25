@@ -76,7 +76,7 @@ func (s *Server) Create(ctx context.Context, request *api.CreateRequest) (*api.C
 // Close closes a session
 func (s *Server) Close(ctx context.Context, request *api.CloseRequest) (*api.CloseResponse, error) {
 	// TODO It should be implemented
-	log.Info("Received CloseRequest %+v", request)
+	log.Info("Received CloseRequest:", request)
 	responseHeader := &headers.ResponseHeader{
 		SessionID: request.Header.SessionID,
 		Status:    headers.ResponseStatus_OK,
@@ -85,7 +85,7 @@ func (s *Server) Close(ctx context.Context, request *api.CloseRequest) (*api.Clo
 	response := &api.CloseResponse{
 		Header: responseHeader,
 	}
-	log.Info("Sending CloseResponse %+v", response)
+	log.Info("Sending CloseResponse:", response)
 	return response, nil
 }
 

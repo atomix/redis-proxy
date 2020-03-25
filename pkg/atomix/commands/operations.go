@@ -17,6 +17,8 @@ package commands
 // Redis commands
 const (
 
+	// Set the value of an element in a list by its index
+	LSET = "LSET"
 	// Get an element from the list by its index
 	LINDEX = "LINDEX"
 	// Get the length of a list

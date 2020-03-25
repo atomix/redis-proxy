@@ -75,7 +75,18 @@ func (s *Server) Create(ctx context.Context, request *api.CreateRequest) (*api.C
 
 // Close closes a session
 func (s *Server) Close(ctx context.Context, request *api.CloseRequest) (*api.CloseResponse, error) {
-	panic("Implement me")
+	// TODO It should be implemented
+	log.Info("Received CloseRequest:", request)
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+	}
+
+	response := &api.CloseResponse{
+		Header: responseHeader,
+	}
+	log.Info("Sending CloseResponse:", response)
+	return response, nil
 }
 
 // Size gets the number of elements in the list
@@ -123,7 +134,22 @@ func (s *Server) Append(ctx context.Context, request *api.AppendRequest) (*api.A
 
 // Insert inserts a value at a specific index
 func (s *Server) Insert(ctx context.Context, request *api.InsertRequest) (*api.InsertResponse, error) {
-	panic("Implement me")
+	log.Info("Received InsertRequest:", request)
+	_, err := s.DoCommand(request.Header, commands.LSET, request.Header.Name.Name, request.Index, request.Value)
+	if err != nil {
+		return nil, err
+	}
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+	}
+	response := &api.InsertResponse{
+		Header: responseHeader,
+		Status: api.ResponseStatus_OK,
+	}
+	log.Info("Sent InsertResponse", response)
+	return response, nil
+
 }
 
 // Set sets the value at a specific index
