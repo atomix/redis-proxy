@@ -133,7 +133,21 @@ func (s *Server) Set(ctx context.Context, request *api.SetRequest) (*api.SetResp
 
 // Get gets the value at a specific index
 func (s *Server) Get(ctx context.Context, request *api.GetRequest) (*api.GetResponse, error) {
-	panic("Implement me")
+	log.Info("Received GetRequest:", request)
+	value, err := redis.String(s.DoCommand(request.Header, commands.LINDEX, request.Header.Name.Name, request.Index))
+	if err != nil {
+		return nil, err
+	}
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+	}
+	response := &api.GetResponse{
+		Header: responseHeader,
+		Status: api.ResponseStatus_OK,
+		Value:  value,
+	}
+	return response, nil
 }
 
 // Remove removes an index from the list

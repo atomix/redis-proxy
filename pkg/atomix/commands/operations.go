@@ -17,6 +17,8 @@ package commands
 // Redis commands
 const (
 
+	// Get an element from the list by its index
+	LINDEX = "LINDEX"
 	// Get the length of a list
 	LLEN = "LLEN"
 	// Append one or more elements to the end of a list
