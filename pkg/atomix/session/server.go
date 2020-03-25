@@ -81,7 +81,7 @@ func (s *Server) KeepAlive(ctx context.Context, request *api.KeepAliveRequest) (
 	mgr := manager.GetManager()
 	conn := *mgr.GetSession(int64(request.Header.GetSessionID()))
 	if conn == nil {
-		return nil, fmt.Errorf("connection does not exist")
+		return &api.KeepAliveResponse{}, fmt.Errorf("connection does not exist")
 	}
 	_, err := conn.Do(commands.PING)
 	if err != nil {
@@ -97,6 +97,7 @@ func (s *Server) KeepAlive(ctx context.Context, request *api.KeepAliveRequest) (
 		Header: &header,
 	}
 	return response, nil
+
 }
 
 // CloseSession closes a new redis session

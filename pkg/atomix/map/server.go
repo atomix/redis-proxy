@@ -58,6 +58,8 @@ type Server struct {
 
 // Create opens a new session
 func (s *Server) Create(ctx context.Context, request *api.CreateRequest) (*api.CreateResponse, error) {
+	// TODO It should be implemented
+
 	log.Info("Received CreateRequest %+v", request)
 	responseHeader := &headers.ResponseHeader{
 		SessionID: request.Header.SessionID,
@@ -73,6 +75,7 @@ func (s *Server) Create(ctx context.Context, request *api.CreateRequest) (*api.C
 
 // Close closes a session
 func (s *Server) Close(ctx context.Context, request *api.CloseRequest) (*api.CloseResponse, error) {
+	// TODO It should be implemented
 	log.Info("Received CloseRequest %+v", request)
 	responseHeader := &headers.ResponseHeader{
 		SessionID: request.Header.SessionID,
@@ -246,7 +249,6 @@ func (s *Server) Events(request *api.EventRequest, srv api.MapService_EventsServ
 
 // Entries lists all entries currently in the map
 func (s *Server) Entries(request *api.EntriesRequest, srv api.MapService_EntriesServer) error {
-	log.Info("Received EntriesRequest:", request)
 	entries, err := redis.StringMap(s.DoCommand(request.Header, commands.HGETALL, request.Header.Name.Name))
 	if err != nil {
 		return err
