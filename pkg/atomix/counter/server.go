@@ -29,7 +29,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-var log = logging.GetLogger("redis", "map")
+var log = logging.GetLogger("redis", "counter")
 
 // NewService returns a new Service
 func NewService() (server.Service, error) {
