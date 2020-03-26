@@ -134,7 +134,25 @@ func (s *Server) Append(ctx context.Context, request *api.AppendRequest) (*api.A
 
 // Insert inserts a value at a specific index
 func (s *Server) Insert(ctx context.Context, request *api.InsertRequest) (*api.InsertResponse, error) {
-	panic("Implement me")
+	log.Info("Received InsertRequest:", request)
+
+	currentValue, _ := s.DoCommand(request.Header, commands.LINDEX, request.Header.Name.Name, request.Index)
+	_, err := s.DoCommand(request.Header, commands.LINSERT, request.Header.Name.Name, "BEFORE", currentValue, request.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+	}
+	response := &api.InsertResponse{
+		Header: responseHeader,
+		Status: api.ResponseStatus_OK,
+	}
+	log.Info("Sent InsertResponse", response)
+	return response, nil
+
 }
 
 // Set sets the value at a specific index

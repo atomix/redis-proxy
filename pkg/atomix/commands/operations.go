@@ -16,6 +16,11 @@ package commands
 
 // Redis commands
 const (
+	LINSERT = "LINSERT"
+	//
+	EXEC = "EXEC"
+	//
+	MULTI = "MULTI"
 	// Delete a key
 	DEL = "DEL"
 	// Set the value of an element in a list by its index
