@@ -134,7 +134,7 @@ func (s *Server) Append(ctx context.Context, request *api.AppendRequest) (*api.A
 
 // Insert inserts a value at a specific index
 func (s *Server) Insert(ctx context.Context, request *api.InsertRequest) (*api.InsertResponse, error) {
-
+	panic("Implement me")
 }
 
 // Set sets the value at a specific index
@@ -182,7 +182,21 @@ func (s *Server) Remove(ctx context.Context, request *api.RemoveRequest) (*api.R
 
 // Clear removes all indexes from the list
 func (s *Server) Clear(ctx context.Context, request *api.ClearRequest) (*api.ClearResponse, error) {
-	panic("Implement me")
+	log.Info("Received ClearRequest:", request)
+	_, err := s.DoCommand(request.Header, commands.DEL, request.Header.Name.Name)
+	if err != nil {
+		return nil, err
+	}
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+	}
+	response := &api.ClearResponse{
+		Header: responseHeader,
+	}
+	log.Info("Sent ClearResponse", response)
+	return response, nil
+
 }
 
 // Events listens for list change events

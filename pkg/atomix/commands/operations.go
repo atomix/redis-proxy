@@ -16,7 +16,8 @@ package commands
 
 // Redis commands
 const (
-
+	// Delete a key
+	DEL = "DEL"
 	// Set the value of an element in a list by its index
 	LSET = "LSET"
 	// Get an element from the list by its index
