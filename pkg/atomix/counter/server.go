@@ -175,26 +175,31 @@ func (s *Server) Decrement(ctx context.Context, request *api.DecrementRequest) (
 // CheckAndSet updates the value of the counter conditionally
 func (s *Server) CheckAndSet(ctx context.Context, request *api.CheckAndSetRequest) (*api.CheckAndSetResponse, error) {
 	log.Info("Received CheckAndSetRequest", request)
-	current, err := redis.Int64(s.DoCommand(request.Header, commands.GET, request.Header.Name.Name))
+	err := s.DoLuaScript(request.Header, checkAndSetScript, 1, request.Header.Name.Name, request.Expect, request.Update)
 	if err != nil {
-		return nil, err
-	}
-	if current == request.Expect {
-		_, err := s.DoCommand(request.Header, commands.SET, request.Header.Name.Name, request.Update)
-		if err != nil {
-			return nil, err
+		responseHeader := &headers.ResponseHeader{
+			SessionID: request.Header.SessionID,
+			Status:    headers.ResponseStatus_ERROR,
 		}
-
 		response := &api.CheckAndSetResponse{
-			Succeeded: true,
+			Header:    responseHeader,
+			Succeeded: false,
 		}
 
-		return response, nil
+		log.Info("Sent CAS response", response)
+		return response, err
+	}
+
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
 	}
 	response := &api.CheckAndSetResponse{
-		Succeeded: false,
+		Header:    responseHeader,
+		Succeeded: true,
 	}
 
+	log.Info("Sent CAS response", response)
 	return response, nil
 }
 

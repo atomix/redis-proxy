@@ -136,10 +136,9 @@ func (s *Server) Append(ctx context.Context, request *api.AppendRequest) (*api.A
 func (s *Server) Insert(ctx context.Context, request *api.InsertRequest) (*api.InsertResponse, error) {
 	log.Info("Received InsertRequest:", request)
 
-	currentValue, _ := s.DoCommand(request.Header, commands.LINDEX, request.Header.Name.Name, request.Index)
-	_, err := s.DoCommand(request.Header, commands.LINSERT, request.Header.Name.Name, "BEFORE", currentValue, request.Value)
+	err := s.DoLuaScript(request.Header, insertScript, 1, "BEFORE", request.Value)
 	if err != nil {
-		return nil, err
+		log.Info(err)
 	}
 
 	responseHeader := &headers.ResponseHeader{

@@ -216,18 +216,11 @@ func (s *Server) Remove(ctx context.Context, request *api.RemoveRequest) (*api.R
 // Clear removes all keys from the map
 func (s *Server) Clear(ctx context.Context, request *api.ClearRequest) (*api.ClearResponse, error) {
 	log.Info("Received ClearRequest:", request)
-
-	keys, err := redis.Strings(s.DoCommand(request.Header, commands.HKEYS, request.Header.Name.Name))
+	_, err := s.DoCommand(request.Header, commands.DEL, request.Header.Name.Name)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, key := range keys {
-		_, err = s.DoCommand(request.Header, commands.HDEL, request.Header.Name.Name, key)
-		if err != nil {
-			return nil, err
-		}
-	}
 	responseHeader := &headers.ResponseHeader{
 		SessionID: request.Header.SessionID,
 		Status:    headers.ResponseStatus_OK,
