@@ -175,7 +175,7 @@ func (s *Server) Decrement(ctx context.Context, request *api.DecrementRequest) (
 // CheckAndSet updates the value of the counter conditionally
 func (s *Server) CheckAndSet(ctx context.Context, request *api.CheckAndSetRequest) (*api.CheckAndSetResponse, error) {
 	log.Info("Received CheckAndSetRequest", request)
-	err := s.DoLuaScript(request.Header, checkAndSetScript, 1, request.Header.Name.Name, request.Expect, request.Update)
+	_, err := s.DoLuaScript(request.Header, checkAndSetScript, 1, request.Header.Name.Name, request.Expect, request.Update)
 	if err != nil {
 		responseHeader := &headers.ResponseHeader{
 			SessionID: request.Header.SessionID,

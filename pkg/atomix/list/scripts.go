@@ -13,6 +13,3 @@
 // limitations under the License.
 
 package list
-
-const insertScript = `
-`

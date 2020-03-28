@@ -110,7 +110,30 @@ func (s *Server) Size(ctx context.Context, request *api.SizeRequest) (*api.SizeR
 
 // Contains checks whether the list contains a value
 func (s *Server) Contains(ctx context.Context, request *api.ContainsRequest) (*api.ContainsResponse, error) {
-	panic("Implement me")
+	log.Info("Received ContainRequest:", request)
+	elements, err := redis.Strings(s.DoCommand(request.Header, commands.LRANGE, request.Header.Name.Name, 0, -1))
+
+	if err != nil {
+		return nil, err
+	}
+
+	contain := false
+	for _, element := range elements {
+		if element == request.Value {
+			contain = true
+		}
+	}
+
+	responseHeader := &headers.ResponseHeader{
+		SessionID: request.Header.SessionID,
+		Status:    headers.ResponseStatus_OK,
+	}
+	response := &api.ContainsResponse{
+		Header:   responseHeader,
+		Contains: contain,
+	}
+	log.Info("Sent ContainsResponse", response)
+	return response, nil
 }
 
 // Append adds a value to the end of the list
@@ -134,24 +157,7 @@ func (s *Server) Append(ctx context.Context, request *api.AppendRequest) (*api.A
 
 // Insert inserts a value at a specific index
 func (s *Server) Insert(ctx context.Context, request *api.InsertRequest) (*api.InsertResponse, error) {
-	log.Info("Received InsertRequest:", request)
-
-	err := s.DoLuaScript(request.Header, insertScript, 1, "BEFORE", request.Value)
-	if err != nil {
-		log.Info(err)
-	}
-
-	responseHeader := &headers.ResponseHeader{
-		SessionID: request.Header.SessionID,
-		Status:    headers.ResponseStatus_OK,
-	}
-	response := &api.InsertResponse{
-		Header: responseHeader,
-		Status: api.ResponseStatus_OK,
-	}
-	log.Info("Sent InsertResponse", response)
-	return response, nil
-
+	panic("Implement me")
 }
 
 // Set sets the value at a specific index

@@ -44,15 +44,15 @@ func (s *Server) DoCreateService(ctx context.Context) {
 }
 
 // DoLuaScript run a lua script to perform multiple redis operations
-func (s *Server) DoLuaScript(header *headers.RequestHeader, script string, keyCount int, keyAndArgs ...interface{}) error {
+func (s *Server) DoLuaScript(header *headers.RequestHeader, script string, keyCount int, keyAndArgs ...interface{}) (interface{}, error) {
 	log.Info("Execute a lua script")
 	redisScript := redis.NewScript(keyCount, script)
 	mgr := manager.GetManager()
 	conn := *mgr.GetSession(int64(header.SessionID))
-	_, err := redisScript.Do(conn, keyAndArgs...)
+	value, err := redisScript.Do(conn, keyAndArgs...)
 	if err != nil {
-		return err
+		return value, err
 	}
-	return nil
+	return value, nil
 
 }

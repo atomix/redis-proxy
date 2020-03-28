@@ -16,11 +16,10 @@ package commands
 
 // Redis commands
 const (
+	// Get a range of elements from a list
+	LRANGE = "LRANGE"
+	// Insert an element before or after an element in the list
 	LINSERT = "LINSERT"
-	//
-	EXEC = "EXEC"
-	//
-	MULTI = "MULTI"
 	// Delete a key
 	DEL = "DEL"
 	// Set the value of an element in a list by its index
