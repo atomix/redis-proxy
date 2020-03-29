@@ -16,14 +16,30 @@ package commands
 
 // Redis commands
 const (
+	// Get a range of elements from a list
+	LRANGE = "LRANGE"
+	// Insert an element before or after an element in the list
+	LINSERT = "LINSERT"
+	// Delete a key
+	DEL = "DEL"
+	// Set the value of an element in a list by its index
+	LSET = "LSET"
+	// Get an element from the list by its index
+	LINDEX = "LINDEX"
+	// Get the length of a list
+	LLEN = "LLEN"
+	// Append one or more elements to the end of a list
+	RPUSH = "RPUSH"
+
 	// Decrements the number stored at key by decrement
 	DECRBY = "DECRBY"
-	// Increments the number stored at key by increment.
+	// Increments the number stored at key by increment
 	INCRBY = "INCRBY"
 	// Get the value of key
 	GET = "GET"
 	// Set the value of a key
 	SET = "SET"
+
 	// Get the value of a hash field
 	HGET = "HGET"
 	// Get the values of all the given hash fields
@@ -40,6 +56,7 @@ const (
 	HEXISTS = "HEXISTS"
 	// Get all of the fields in a hash
 	HKEYS = "HKEYS"
+
 	// PING redis server
 	PING = "PING"
 )

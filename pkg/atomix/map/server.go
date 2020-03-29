@@ -76,7 +76,7 @@ func (s *Server) Create(ctx context.Context, request *api.CreateRequest) (*api.C
 // Close closes a session
 func (s *Server) Close(ctx context.Context, request *api.CloseRequest) (*api.CloseResponse, error) {
 	// TODO It should be implemented
-	log.Info("Received CloseRequest %+v", request)
+	log.Info("Received CloseRequest:", request)
 	responseHeader := &headers.ResponseHeader{
 		SessionID: request.Header.SessionID,
 		Status:    headers.ResponseStatus_OK,
@@ -85,7 +85,7 @@ func (s *Server) Close(ctx context.Context, request *api.CloseRequest) (*api.Clo
 	response := &api.CloseResponse{
 		Header: responseHeader,
 	}
-	log.Info("Sending CloseResponse %+v", response)
+	log.Info("Sending CloseResponse:", response)
 	return response, nil
 }
 
@@ -216,18 +216,11 @@ func (s *Server) Remove(ctx context.Context, request *api.RemoveRequest) (*api.R
 // Clear removes all keys from the map
 func (s *Server) Clear(ctx context.Context, request *api.ClearRequest) (*api.ClearResponse, error) {
 	log.Info("Received ClearRequest:", request)
-
-	keys, err := redis.Strings(s.DoCommand(request.Header, commands.HKEYS, request.Header.Name.Name))
+	_, err := s.DoCommand(request.Header, commands.DEL, request.Header.Name.Name)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, key := range keys {
-		_, err = s.DoCommand(request.Header, commands.HDEL, request.Header.Name.Name, key)
-		if err != nil {
-			return nil, err
-		}
-	}
 	responseHeader := &headers.ResponseHeader{
 		SessionID: request.Header.SessionID,
 		Status:    headers.ResponseStatus_OK,

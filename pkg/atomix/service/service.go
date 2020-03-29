@@ -17,9 +17,14 @@ package service
 import (
 	"context"
 
+	"github.com/gomodule/redigo/redis"
+	"github.com/onosproject/onos-lib-go/pkg/logging"
+
 	"github.com/atomix/api/proto/atomix/headers"
 	"github.com/atomix/redis-proxy/pkg/manager"
 )
+
+var log = logging.GetLogger("atomix", "service")
 
 // Server redis proxy server
 type Server struct{}
@@ -35,5 +40,19 @@ func (s *Server) DoCommand(header *headers.RequestHeader, commandName string, ar
 // DoCreateService creates a service
 func (s *Server) DoCreateService(ctx context.Context) {
 	//panic("Implement me")
+
+}
+
+// DoLuaScript run a lua script to perform multiple redis operations
+func (s *Server) DoLuaScript(header *headers.RequestHeader, script string, keyCount int, keyAndArgs ...interface{}) (interface{}, error) {
+	log.Info("Execute a lua script")
+	redisScript := redis.NewScript(keyCount, script)
+	mgr := manager.GetManager()
+	conn := *mgr.GetSession(int64(header.SessionID))
+	value, err := redisScript.Do(conn, keyAndArgs...)
+	if err != nil {
+		return value, err
+	}
+	return value, nil
 
 }
