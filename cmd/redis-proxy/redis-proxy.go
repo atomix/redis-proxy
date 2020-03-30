@@ -17,6 +17,8 @@ package main
 import (
 	"flag"
 
+	"github.com/atomix/go-framework/pkg/atomix/util"
+
 	"github.com/atomix/redis-proxy/pkg/atomix/counter"
 	"github.com/atomix/redis-proxy/pkg/atomix/list"
 	"github.com/atomix/redis-proxy/pkg/atomix/session"
@@ -47,6 +49,10 @@ func main() {
 	if err != nil {
 		log.Fatal("Unable to start redis proxy manager")
 	}
+
+	// Set the ready file to indicate startup of the protocol is complete.
+	ready := util.NewFileReady()
+	_ = ready.Set()
 
 	err = startServer(*caPath, *keyPath, *certPath, *port)
 	if err != nil {
