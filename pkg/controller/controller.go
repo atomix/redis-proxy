@@ -17,6 +17,8 @@ package controller
 import (
 	"net"
 
+	"github.com/atomix/redis-proxy/pkg/controller/v1beta1/cluster"
+
 	api "github.com/atomix/api/proto/atomix/controller"
 
 	"github.com/onosproject/onos-lib-go/pkg/logging"
@@ -24,15 +26,21 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
+	ctrlmgr "sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 var log = logging.GetLogger("controller", "redis")
 
 // AddController adds the Redis controller to the k8s controller manager
-func AddController(mgr manager.Manager) error {
+func AddController(mgr ctrlmgr.Manager) error {
 	c := newController(mgr.GetClient(), mgr.GetScheme(), mgr.GetConfig())
 	err := mgr.Add(c)
+	if err != nil {
+		return err
+	}
+
+	// Adds redis cluster controller
+	err = cluster.Add(mgr)
 	if err != nil {
 		return err
 	}
@@ -81,7 +89,7 @@ func (c *Controller) Start(stop <-chan struct{}) error {
 	case e := <-errs:
 		return e
 	case <-stop:
-		log.Info("Stopping controller server")
+		log.Info("Stopping redis controller server")
 		s.Stop()
 		return nil
 	}

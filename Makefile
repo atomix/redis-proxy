@@ -24,7 +24,7 @@ deps: # @HELP ensure that the required dependencies are in place
 	bash -c "diff -u <(echo -n) <(git diff go.sum)"
 
 linters: # @HELP examines Go source code and reports coding problems
-	golangci-lint run
+	GOGC=75 golangci-lint run
 
 license_check: # @HELP examine and ensure license headers exist
 	@if [ ! -d "../build-tools" ]; then cd .. && git clone https://github.com/onosproject/build-tools.git; fi
