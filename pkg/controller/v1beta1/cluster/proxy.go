@@ -18,7 +18,7 @@ import (
 	"context"
 
 	"github.com/atomix/kubernetes-controller/pkg/apis/cloud/v1beta1"
-	"github.com/atomix/kubernetes-controller/pkg/controller/v1beta1/util/k8s"
+	"github.com/atomix/redis-proxy/pkg/controller/v1beta1/util/k8s"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
