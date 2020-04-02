@@ -16,6 +16,11 @@ package cluster
 
 import (
 	"context"
+	"fmt"
+	"strconv"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	"github.com/atomix/kubernetes-controller/pkg/apis/cloud/v1beta1"
 	"github.com/atomix/redis-proxy/pkg/controller/v1beta1/util/k8s"
@@ -53,13 +58,77 @@ func (r *Reconciler) reconcileProxyService(cluster *v1beta1.Cluster) error {
 }
 
 func (r *Reconciler) addProxyConfigMap(cluster *v1beta1.Cluster) error {
-	panic("Implement me")
+	log.Info("Creating proxy ConfigMap", "Name", cluster.Name, "Namespace", cluster.Namespace)
+	cm := &corev1.ConfigMap{}
+	name := types.NamespacedName{
+		Name:      fmt.Sprintf("%s-session", cluster.Name),
+		Namespace: cluster.Namespace,
+	}
+	if err := r.client.Get(context.TODO(), name, cm); err != nil {
+		if errors.IsNotFound(err) {
+			cm = &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name.Name,
+					Namespace: name.Namespace,
+				},
+				Data: map[string]string{
+					"session": "0",
+				},
+			}
+			if err := controllerutil.SetControllerReference(cluster, cm, r.scheme); err != nil {
+				return err
+			}
+			if err := r.client.Create(context.TODO(), cm); err != nil {
+				return err
+			}
+			if err := r.client.Get(context.TODO(), name, cm); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+
+	session, err := strconv.Atoi(cm.Data["session"])
+	if err != nil {
+		return err
+	}
+	session++
+	cm.Data["session"] = fmt.Sprintf("%d", session)
+	if err := r.client.Update(context.TODO(), cm); err != nil {
+		return err
+	}
+
+	config := map[string]interface{}{
+		"sessionId": fmt.Sprintf("%d", session),
+	}
+	cm, err = k8s.NewProxyConfigMap(cluster, config)
+	if err != nil {
+		return err
+	}
+	if err := controllerutil.SetControllerReference(cluster, cm, r.scheme); err != nil {
+		return err
+	}
+	return r.client.Create(context.TODO(), cm)
 }
 
 func (r *Reconciler) addProxyDeployment(cluster *v1beta1.Cluster) error {
-	panic("Implement me")
+	log.Info("Creating proxy Deployment", "Name", cluster.Name, "Namespace", cluster.Namespace)
+	dep, err := k8s.NewProxyDeployment(cluster)
+	if err != nil {
+		return err
+	}
+	if err := controllerutil.SetControllerReference(cluster, dep, r.scheme); err != nil {
+		return err
+	}
+	return r.client.Create(context.TODO(), dep)
 }
 
 func (r *Reconciler) addProxyService(cluster *v1beta1.Cluster) error {
-	panic("Implement me")
+	log.Info("Creating proxy service", "Name", cluster.Name, "Namespace", cluster.Namespace)
+	service := k8s.NewProxyService(cluster)
+	if err := controllerutil.SetControllerReference(cluster, service, r.scheme); err != nil {
+		return err
+	}
+	return r.client.Create(context.TODO(), service)
 }
