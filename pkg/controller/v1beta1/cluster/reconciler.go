@@ -18,9 +18,11 @@ import (
 	"context"
 
 	"github.com/atomix/kubernetes-controller/pkg/apis/cloud/v1beta1"
+	"github.com/atomix/kubernetes-controller/pkg/controller/v1beta1/util/k8s"
 	"github.com/onosproject/onos-lib-go/pkg/logging"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrlmgr "sigs.k8s.io/controller-runtime/pkg/manager"
 
@@ -112,13 +114,104 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 }
 
 func (r *Reconciler) reconcileRedisProxy(cluster *v1beta1.Cluster) error {
-	panic("Implement me")
+	err := r.reconcileProxyConfigMap(cluster)
+	if err != nil {
+		return err
+	}
+
+	// Reconcile the redis proxy Deployment
+	err = r.reconcileProxyDeployment(cluster)
+	if err != nil {
+		return err
+	}
+
+	// Reconcile the redis proxy Service
+	err = r.reconcileProxyService(cluster)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *Reconciler) reconcileRedisBackend(cluster *v1beta1.Cluster) error {
-	panic("Implement me")
+	// Reconcile the cluster config map
+	err := r.reconcileBackendConfigMap(cluster)
+	if err != nil {
+		return err
+	}
+
+	// Reconcile the pod disruption budget
+	err = r.reconcileBackendDisruptionBudget(cluster)
+	if err != nil {
+		return err
+	}
+
+	// Reconcile the StatefulSet
+	err = r.reconcileBackendStatefulSet(cluster)
+	if err != nil {
+		return err
+	}
+
+	// Reconcile the headless cluster service
+	err = r.reconcileHeadlessService(cluster)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *Reconciler) reconcileStatus(cluster *v1beta1.Cluster) error {
-	panic("Implement me")
+	set := &appsv1.StatefulSet{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: k8s.GetClusterStatefulSetName(cluster), Namespace: cluster.Namespace}, set)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	// Update the backend replicas status
+	if set.Status.ReadyReplicas != cluster.Status.Backend.ReadyReplicas {
+		log.Info("Updating Backend status", "Name", cluster.Name, "Namespace", cluster.Namespace, "ReadyReplicas", set.Status.ReadyReplicas)
+		cluster.Status.Backend.ReadyReplicas = set.Status.ReadyReplicas
+		err = r.client.Status().Update(context.TODO(), cluster)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	// Update the proxy status
+	if cluster.Spec.Proxy != nil {
+		deployment := &appsv1.Deployment{}
+		err := r.client.Get(context.TODO(), types.NamespacedName{Name: k8s.GetProxyDeploymentName(cluster), Namespace: cluster.Namespace}, deployment)
+		if err != nil {
+			if errors.IsNotFound(err) {
+				return nil
+			}
+			return err
+		}
+
+		if cluster.Status.Proxy == nil {
+			cluster.Status.Proxy = &v1beta1.ProxyStatus{
+				Ready: false,
+			}
+			err = r.client.Status().Update(context.TODO(), cluster)
+			if err != nil {
+				return err
+			}
+			return nil
+		} else if deployment.Status.ReadyReplicas > 0 != cluster.Status.Proxy.Ready {
+			cluster.Status.Proxy.Ready = deployment.Status.ReadyReplicas > 0
+			log.Info("Updating Proxy status", "Name", cluster.Name, "Namespace", cluster.Namespace, "Ready", cluster.Status.Proxy.Ready)
+			err = r.client.Status().Update(context.TODO(), cluster)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+
+	return nil
 }
