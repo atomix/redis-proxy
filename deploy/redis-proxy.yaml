@@ -15,6 +15,10 @@ spec:
             initialDelaySeconds: 15
             periodSeconds: 20
       backend:
+        metadata:
+          name: redis
+          labels:
+            app: redis
         image: redis:latest
         replicas: 1
         livenessProbe:

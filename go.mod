@@ -25,3 +25,5 @@ require (
 	k8s.io/code-generator v0.0.0-20190612125529-c522cb6c26aa
 	sigs.k8s.io/controller-runtime v0.1.8
 )
+
+replace github.com/atomix/kubernetes-controller => ../kubernetes-controller

@@ -92,24 +92,29 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 
 	v1beta1.SetClusterDefaults(cluster)
 
-	// Reconcile the redis database backend
-	err = r.reconcileRedisBackend(cluster)
-	if err != nil {
-		return reconcile.Result{}, err
-	}
+	if cluster.Spec.Backend.Metadata.Name == "redis" {
+		log.Info("Reconcile redis backend and redis proxy")
 
-	// Reconcile the redis proxy
-	if cluster.Spec.Proxy != nil {
-		err = r.reconcileRedisProxy(cluster)
+		// Reconcile the redis database backend
+		err = r.reconcileRedisBackend(cluster)
 		if err != nil {
+			return reconcile.Result{}, err
+		}
+
+		// Reconcile the redis proxy
+		if cluster.Spec.Proxy != nil {
+			err = r.reconcileRedisProxy(cluster)
+			if err != nil {
+				return reconcile.Result{}, err
+			}
+		}
+
+		// Reconcile the cluster status
+		if err := r.reconcileStatus(cluster); err != nil {
 			return reconcile.Result{}, err
 		}
 	}
 
-	// Reconcile the cluster status
-	if err := r.reconcileStatus(cluster); err != nil {
-		return reconcile.Result{}, err
-	}
 	return reconcile.Result{}, nil
 }
 
