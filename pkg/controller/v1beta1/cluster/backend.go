@@ -29,15 +29,33 @@ import (
 )
 
 func (r *Reconciler) addBackendHeadlessService(cluster *v1beta1.Cluster) error {
-	panic("Implement me")
+	log.Info("Creating headless backend service", "Name", cluster.Name, "Namespace", cluster.Namespace)
+	service := k8s.NewClusterHeadlessService(cluster)
+	if err := controllerutil.SetControllerReference(cluster, service, r.scheme); err != nil {
+		return err
+	}
+	return r.client.Create(context.TODO(), service)
 }
 
 func (r *Reconciler) addBackendDisruptionBudget(cluster *v1beta1.Cluster) error {
-	panic("Implement me")
+	log.Info("Creating pod disruption budget", "Name", cluster.Name, "Namespace", cluster.Namespace)
+	budget := k8s.NewClusterDisruptionBudget(cluster)
+	if err := controllerutil.SetControllerReference(cluster, budget, r.scheme); err != nil {
+		return err
+	}
+	return r.client.Create(context.TODO(), budget)
 }
 
 func (r *Reconciler) addBackendStatefulSet(cluster *v1beta1.Cluster) error {
-	panic("Implement me")
+	log.Info("Creating backend replicas", "Name", cluster.Name, "Namespace", cluster.Namespace)
+	set, err := k8s.NewBackendStatefulSet(cluster)
+	if err != nil {
+		return err
+	}
+	if err := controllerutil.SetControllerReference(cluster, set, r.scheme); err != nil {
+		return err
+	}
+	return r.client.Create(context.TODO(), set)
 }
 
 func (r *Reconciler) addBackendConfigMap(cluster *v1beta1.Cluster) error {
