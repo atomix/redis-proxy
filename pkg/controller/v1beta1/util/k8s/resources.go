@@ -147,9 +147,9 @@ func newContainer(container Container) corev1.Container {
 		Resources:       container.Resources(),
 		Ports:           container.Ports(),
 		Args:            container.args,
-		//ReadinessProbe:  container.ReadinessProbe(),
-		//LivenessProbe:   container.LivenessProbe(),
-		VolumeMounts: container.VolumeMounts(),
+		ReadinessProbe:  container.ReadinessProbe(),
+		LivenessProbe:   container.LivenessProbe(),
+		VolumeMounts:    container.VolumeMounts(),
 	}
 }
 

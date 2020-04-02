@@ -400,8 +400,8 @@ func NewBackendStatefulSet(cluster *v1beta1.Cluster) (*appsv1.StatefulSet, error
 
 	image := cluster.Spec.Backend.Image
 	pullPolicy := cluster.Spec.Backend.ImagePullPolicy
-	//livenessProbe := cluster.Spec.Backend.LivenessProbe
-	//readinessProbe := cluster.Spec.Backend.ReadinessProbe
+	livenessProbe := cluster.Spec.Backend.LivenessProbe
+	readinessProbe := cluster.Spec.Backend.ReadinessProbe
 
 	if pullPolicy == "" {
 		pullPolicy = corev1.PullIfNotPresent
@@ -420,11 +420,11 @@ func NewBackendStatefulSet(cluster *v1beta1.Cluster) (*appsv1.StatefulSet, error
 	container := containerBuilder.SetImage(image).
 		SetName("atomix").
 		SetPullPolicy(pullPolicy).
-		//SetArgs(cluster.Spec.Backend.Args...).
+		SetArgs(cluster.Spec.Backend.Args...).
 		SetEnv(cluster.Spec.Backend.Env).
 		SetPorts([]corev1.ContainerPort{apiContainerPort, protocolContainerPort}).
-		//SetReadinessProbe(readinessProbe).
-		//SetLivenessProbe(livenessProbe).
+		SetReadinessProbe(readinessProbe).
+		SetLivenessProbe(livenessProbe).
 		SetVolumeMounts([]corev1.VolumeMount{newDataVolumeMount(), newConfigVolumeMount()}).
 		Build()
 

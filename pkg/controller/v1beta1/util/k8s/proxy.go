@@ -104,8 +104,8 @@ func NewProxyDeployment(cluster *v1beta1.Cluster) (*appsv1.Deployment, error) {
 	var one int32 = 1
 	image := cluster.Spec.Proxy.Image
 	pullPolicy := cluster.Spec.Proxy.ImagePullPolicy
-	//livenessProbe := cluster.Spec.Proxy.LivenessProbe
-	//readinessProbe := cluster.Spec.Proxy.ReadinessProbe
+	livenessProbe := cluster.Spec.Proxy.LivenessProbe
+	readinessProbe := cluster.Spec.Proxy.ReadinessProbe
 
 	if pullPolicy == "" {
 		pullPolicy = corev1.PullIfNotPresent
@@ -123,11 +123,11 @@ func NewProxyDeployment(cluster *v1beta1.Cluster) (*appsv1.Deployment, error) {
 	container := containerBuilder.SetImage(image).
 		SetName("atomix").
 		SetPullPolicy(pullPolicy).
-		//SetArgs(cluster.Spec.Proxy.Args...).
+		SetArgs(cluster.Spec.Proxy.Args...).
 		SetEnv(cluster.Spec.Proxy.Env).
 		SetPorts([]corev1.ContainerPort{apiContainerPort, protocolContainerPort}).
-		//SetReadinessProbe(readinessProbe).
-		//SetLivenessProbe(livenessProbe).
+		SetReadinessProbe(readinessProbe).
+		SetLivenessProbe(livenessProbe).
 		SetVolumeMounts([]corev1.VolumeMount{newConfigVolumeMount()}).
 		Build()
 

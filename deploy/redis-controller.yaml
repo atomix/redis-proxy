@@ -1,0 +1,130 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: redis-controller
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - services
+      - endpoints
+      - persistentvolumeclaims
+      - events
+      - configmaps
+      - secrets
+    verbs:
+      - '*'
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+    verbs:
+      - get
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+      - daemonsets
+      - replicasets
+      - statefulsets
+    verbs:
+      - '*'
+  - apiGroups:
+      - policy
+    resources:
+      - poddisruptionbudgets
+    verbs:
+      - '*'
+  - apiGroups:
+      - cloud.atomix.io
+    resources:
+      - '*'
+    verbs:
+      - '*'
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: redis-controller
+subjects:
+  - kind: ServiceAccount
+    name: redis-controller
+    namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: redis-controller
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: redis-controller
+  namespace: kube-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-controller
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: redis-controller
+  template:
+    metadata:
+      labels:
+        name: redis-controller
+    spec:
+      serviceAccountName: redis-controller
+      containers:
+        - name: redis-controller
+          # Replace this with the built image name
+          image: atomix/redis-controller:latest
+          ports:
+            - containerPort: 60000
+              name: metrics
+            - containerPort: 5679
+              name: control
+          command:
+            - redis-controller
+          imagePullPolicy: IfNotPresent
+          readinessProbe:
+            exec:
+              command:
+                - stat
+                - /tmp/atomix-controller-ready
+            initialDelaySeconds: 4
+            periodSeconds: 10
+            failureThreshold: 1
+          env:
+            - name: CONTROLLER_NAME
+              value: "redis-controller"
+            - name: CONTROLLER_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-controller
+  namespace: kube-system
+  labels:
+    name: redis-controller
+spec:
+  selector:
+    name: redis-controller
+  ports:
+    - name: control
+      port: 5679
