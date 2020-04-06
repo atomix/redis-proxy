@@ -19,12 +19,12 @@ import (
 
 	"github.com/gomodule/redigo/redis"
 
-	"github.com/atomix/redis-proxy/pkg/atomix/commands"
+	"github.com/atomix/redis-storage/pkg/atomix/commands"
 
 	"github.com/atomix/api/proto/atomix/headers"
 	api "github.com/atomix/api/proto/atomix/list"
-	"github.com/atomix/redis-proxy/pkg/atomix/service"
-	"github.com/atomix/redis-proxy/pkg/server"
+	"github.com/atomix/redis-storage/pkg/atomix/service"
+	"github.com/atomix/redis-storage/pkg/server"
 	"github.com/onosproject/onos-lib-go/pkg/logging"
 	"google.golang.org/grpc"
 )

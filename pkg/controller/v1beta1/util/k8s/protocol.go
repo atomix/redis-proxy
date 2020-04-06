@@ -23,7 +23,7 @@ import (
 
 	api "github.com/atomix/api/proto/atomix/controller"
 	"github.com/atomix/kubernetes-controller/pkg/apis/cloud/v1beta2"
-	storage "github.com/atomix/redis-proxy/pkg/apis/v1beta2"
+	storage "github.com/atomix/redis-storage/pkg/apis/v1beta1"
 	"github.com/gogo/protobuf/jsonpb"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"

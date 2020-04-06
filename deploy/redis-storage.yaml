@@ -1,4 +1,4 @@
-apiVersion: storage.cloud.atomix.io/v1beta2
+apiVersion: storage.cloud.atomix.io/v1beta1
 kind: RedisStorage
 metadata:
   name: redis-storage

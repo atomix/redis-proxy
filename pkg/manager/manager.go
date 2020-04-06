@@ -15,7 +15,7 @@
 package manager
 
 import (
-	"github.com/atomix/redis-proxy/pkg/redisclient"
+	"github.com/atomix/redis-storage/pkg/redisclient"
 	"github.com/gomodule/redigo/redis"
 	"github.com/onosproject/onos-lib-go/pkg/logging"
 	"google.golang.org/grpc"

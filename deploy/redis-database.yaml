@@ -9,7 +9,7 @@ spec:
       partitions: 1
       storage:
         group: storage.cloud.atomix.io
-        version: v1beta2
+        version: v1beta1
         kind: RedisStorage
         name: redis-storage
         namespace: default

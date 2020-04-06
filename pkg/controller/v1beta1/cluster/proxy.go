@@ -20,11 +20,11 @@ import (
 
 	"strconv"
 
-	storage "github.com/atomix/redis-proxy/pkg/apis/v1beta2"
+	storage "github.com/atomix/redis-storage/pkg/apis/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	"github.com/atomix/redis-proxy/pkg/controller/v1beta2/util/k8s"
+	"github.com/atomix/redis-storage/pkg/controller/v1beta1/util/k8s"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"

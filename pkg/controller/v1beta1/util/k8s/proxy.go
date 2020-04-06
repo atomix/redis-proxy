@@ -17,7 +17,7 @@ package k8s
 import (
 	"fmt"
 
-	storage "github.com/atomix/redis-proxy/pkg/apis/v1beta2"
+	storage "github.com/atomix/redis-storage/pkg/apis/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

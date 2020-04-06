@@ -19,14 +19,14 @@ import (
 
 	"github.com/atomix/go-framework/pkg/atomix/util"
 
-	"github.com/atomix/redis-proxy/pkg/atomix/counter"
-	"github.com/atomix/redis-proxy/pkg/atomix/list"
-	"github.com/atomix/redis-proxy/pkg/atomix/session"
-	"github.com/atomix/redis-proxy/pkg/manager"
+	"github.com/atomix/redis-storage/pkg/atomix/counter"
+	"github.com/atomix/redis-storage/pkg/atomix/list"
+	"github.com/atomix/redis-storage/pkg/atomix/session"
+	"github.com/atomix/redis-storage/pkg/manager"
 	"github.com/onosproject/onos-lib-go/pkg/certs"
 
-	_map "github.com/atomix/redis-proxy/pkg/atomix/map"
-	service "github.com/atomix/redis-proxy/pkg/server"
+	_map "github.com/atomix/redis-storage/pkg/atomix/map"
+	service "github.com/atomix/redis-storage/pkg/server"
 	"github.com/onosproject/onos-lib-go/pkg/logging"
 )
 

@@ -17,7 +17,7 @@ package controller
 import (
 	"net"
 
-	"github.com/atomix/redis-proxy/pkg/controller/v1beta2/cluster"
+	"github.com/atomix/redis-storage/pkg/controller/v1beta1/cluster"
 
 	api "github.com/atomix/api/proto/atomix/controller"
 

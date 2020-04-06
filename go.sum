@@ -109,6 +109,9 @@ github.com/atomix/go-local v0.0.0-20200211010611-c99e53e4c653 h1:IF6ndryG9FwBOB0
 github.com/atomix/go-local v0.0.0-20200211010611-c99e53e4c653/go.mod h1:N3oigYZ/g2RRAHIBw/xk4GkBj6Dk0zDG/1VL52aSodk=
 github.com/atomix/kubernetes-controller v0.0.0-20200401003423-03136b08c532 h1:PSXBUJ1aDrGkHrwTEYRSR36A18Wjr3AgYZwZ0owMaiU=
 github.com/atomix/kubernetes-controller v0.0.0-20200401003423-03136b08c532/go.mod h1:sx+EPCyoN1nSitXCIYOJFaQDGPy7zXIHnqIAYGgUdHs=
+github.com/atomix/redis-proxy v0.0.0-20200401191125-2c6c4e16fc39 h1:rEj0IXFP0vLLKE4jv4c/e0Mr5mf4Fv8XAxHql8xigHU=
+github.com/atomix/redis-proxy v0.0.0-20200401191125-2c6c4e16fc39/go.mod h1:rTRxvnIQ4XTBt8InynSDFhNOD4OBhPj4/tk55qPzp1o=
+github.com/atomix/redis-storage v0.0.0-20200401191125-2c6c4e16fc39 h1:P74B16ODclbLIHqnH0dJ7AGCvogtUH3r+e+lYEkySSU=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0 h1:HWo1m869IqiPhD389kmkxeTalrjNbbJTC8LXupb+sl0=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=

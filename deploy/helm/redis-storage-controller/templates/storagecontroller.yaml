@@ -4,5 +4,5 @@ metadata:
     name: redis
 spec:
     group: storage.cloud.atomix.io
-    version: v1beta2
+    version: v1beta1
     kind: RedisStorage

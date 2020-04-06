@@ -16,11 +16,11 @@ package apis
 
 import (
 	atomixv1beta2 "github.com/atomix/kubernetes-controller/pkg/apis/cloud/v1beta2"
-	redisv1beta2 "github.com/atomix/redis-proxy/pkg/apis/v1beta2"
+	redisv1beta1 "github.com/atomix/redis-storage/pkg/apis/v1beta1"
 )
 
 func init() {
 	// register the types with the Scheme so the components can map objects to GroupVersionKinds and back
-	AddToSchemes = append(AddToSchemes, redisv1beta2.SchemeBuilder.AddToScheme)
+	AddToSchemes = append(AddToSchemes, redisv1beta1.SchemeBuilder.AddToScheme)
 	AddToSchemes = append(AddToSchemes, atomixv1beta2.SchemeBuilder.AddToScheme)
 }

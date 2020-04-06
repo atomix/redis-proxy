@@ -22,8 +22,8 @@ import (
 	"github.com/atomix/kubernetes-controller/pkg/controller/v1beta2/storage"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	storagev1beta2 "github.com/atomix/redis-proxy/pkg/apis/v1beta2"
-	"github.com/atomix/redis-proxy/pkg/controller/v1beta2/util/k8s"
+	storagev1beta1 "github.com/atomix/redis-storage/pkg/apis/v1beta1"
+	"github.com/atomix/redis-storage/pkg/controller/v1beta1/util/k8s"
 	"github.com/onosproject/onos-lib-go/pkg/logging"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -48,7 +48,7 @@ func Add(mgr ctrlmgr.Manager) error {
 
 	gvk := schema.GroupVersionKind{
 		Group:   "storage.cloud.atomix.io",
-		Version: "v1beta2",
+		Version: "v1beta1",
 		Kind:    "RedisStorage",
 	}
 	return storage.AddClusterReconciler(mgr, r, gvk)
@@ -82,7 +82,7 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 		Name:      cluster.Spec.Storage.Name,
 	}
 
-	store := &storagev1beta2.RedisStorage{}
+	store := &storagev1beta1.RedisStorage{}
 	err = r.client.Get(context.TODO(), name, store)
 	if err != nil {
 		return reconcile.Result{}, err
@@ -109,7 +109,7 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 	return reconcile.Result{}, nil
 }
 
-func (r *Reconciler) reconcileStatus(proto *storagev1beta2.RedisStorage) error {
+func (r *Reconciler) reconcileStatus(proto *storagev1beta1.RedisStorage) error {
 	set := &appsv1.StatefulSet{}
 	err := r.client.Get(context.TODO(), types.NamespacedName{Name: k8s.GetClusterStatefulSetName(proto), Namespace: proto.Namespace}, set)
 	if err != nil {
@@ -140,7 +140,7 @@ func (r *Reconciler) reconcileStatus(proto *storagev1beta2.RedisStorage) error {
 	}
 
 	if proto.Status.Proxy == nil {
-		proto.Status.Proxy = &storagev1beta2.ProxyStatus{
+		proto.Status.Proxy = &storagev1beta1.ProxyStatus{
 			Ready: true,
 		}
 		err = r.client.Status().Update(context.TODO(), proto)

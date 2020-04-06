@@ -21,7 +21,7 @@ import (
 	"github.com/onosproject/onos-lib-go/pkg/logging"
 
 	"github.com/atomix/api/proto/atomix/headers"
-	"github.com/atomix/redis-proxy/pkg/manager"
+	"github.com/atomix/redis-storage/pkg/manager"
 )
 
 var log = logging.GetLogger("atomix", "service")
