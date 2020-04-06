@@ -4,6 +4,6 @@ RUN apk upgrade --update --no-cache
 
 USER nobody
 
-ADD build/_output/redis-controller /usr/local/bin/redis-controller
+ADD build/_output/redis-storage-controller /usr/local/bin/redis-storage-controller
 
-ENTRYPOINT ["redis-controller"]
+ENTRYPOINT ["redis-storage-controller"]

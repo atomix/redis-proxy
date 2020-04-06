@@ -1,8 +1,33 @@
+apiVersion: cloud.atomix.io/v1beta2
+kind: StorageController
+metadata:
+  name: redis
+spec:
+  group: storage.cloud.atomix.io
+  version: v1beta2
+  kind: RedisStorage
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: redistorages.storage.cloud.atomix.io
+spec:
+  group:  storage.cloud.atomix.io
+  names:
+    kind: RedisStorage
+    listKind: RedisStorageList
+    plural: redistorages
+    singular: redisstorage
+  scope: Namespaced
+  version: v1beta2
+  subresources:
+    status: {}
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   creationTimestamp: null
-  name: redis-controller
+  name: redis-storage-controller
 rules:
   - apiGroups:
       - ""
@@ -39,6 +64,7 @@ rules:
       - '*'
   - apiGroups:
       - cloud.atomix.io
+      - storage.cloud.atomix.io
     resources:
       - '*'
     verbs:
@@ -50,46 +76,46 @@ metadata:
   name: redis-controller
 subjects:
   - kind: ServiceAccount
-    name: redis-controller
+    name: redis-storage-controller
     namespace: kube-system
 roleRef:
   kind: ClusterRole
-  name: redis-controller
+  name: redis-storage-controller
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: redis-controller
+  name: redis-storage-controller
   namespace: kube-system
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redis-controller
+  name: redis-storage-controller
   namespace: kube-system
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: redis-controller
+      name: redis-storage-controller
   template:
     metadata:
       labels:
-        name: redis-controller
+        name: redis-storage-controller
     spec:
-      serviceAccountName: redis-controller
+      serviceAccountName: redis-storage-controller
       containers:
-        - name: redis-controller
+        - name: redis-storage-controller
           # Replace this with the built image name
-          image: atomix/redis-controller:latest
+          image: atomix/redis-storage-controller:latest
           ports:
             - containerPort: 60000
               name: metrics
             - containerPort: 5679
               name: control
           command:
-            - redis-controller
+            - redis-storag-controller
           imagePullPolicy: IfNotPresent
           readinessProbe:
             exec:
@@ -121,10 +147,10 @@ metadata:
   name: redis-controller
   namespace: kube-system
   labels:
-    name: redis-controller
+    name: redis-storage-controller
 spec:
   selector:
-    name: redis-controller
+    name: redis-storage-controller
   ports:
     - name: control
       port: 5679

@@ -1,0 +1,32 @@
+apiVersion: storage.cloud.atomix.io/v1beta2
+kind: RedisStorage
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  proxy:
+    image: {{ .Values.proxy.repository}}:{{ .Values.proxy.tag }}
+    livenessProbe:
+      tcpSocket:
+        port: 5678
+        initialDelaySeconds: 15
+        periodSeconds: 20
+  backend:
+    metadata:
+      name: {{ .Release.Name }}
+      labels:
+        app: {{ .Release.Name }}
+    image: {{ .Values.backend.repository }}:{{ .Values.backend.tag }}
+    replicas: 1
+    livenessProbe:
+      tcpSocket:
+        port: 6379
+        initialDelaySeconds: 15
+        periodSeconds: 20
+    readinessProbe:
+      exec:
+        command:
+          - redis-cli
+        initialDelaySeconds: 5
+        periodSeconds: 5

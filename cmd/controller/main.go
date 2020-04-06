@@ -19,9 +19,9 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/atomix/kubernetes-controller/pkg/apis"
 	"github.com/atomix/kubernetes-controller/pkg/controller/util/leader"
 	"github.com/atomix/kubernetes-controller/pkg/controller/util/ready"
+	"github.com/atomix/redis-proxy/pkg/apis"
 	"github.com/atomix/redis-proxy/pkg/controller"
 	"github.com/onosproject/onos-lib-go/pkg/logging"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"

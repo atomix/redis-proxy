@@ -1,0 +1,18 @@
+apiVersion: cloud.atomix.io/v1beta2
+kind: Database
+metadata:
+  name: redis-storage
+spec:
+  clusters: 1
+  template:
+    spec:
+      partitions: 1
+      storage:
+        group: storage.cloud.atomix.io
+        version: v1beta2
+        kind: RedisStorage
+        name: redis-storage
+        namespace: default
+
+
+

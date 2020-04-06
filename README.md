@@ -1,1 +1,1 @@
-# redis-proxy
+# Redis Storage
