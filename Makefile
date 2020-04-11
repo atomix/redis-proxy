@@ -1,7 +1,7 @@
 export CGO_ENABLED=0
 export GO111MODULE=on
-ATOMIX_REDIS_PROXY_VERSION := latest
-ATOMIX_REDIS_CONTROLLER_VERSION := latest
+ATOMIX_REDIS_STORAGE_NODE_VERSION := latest
+
 
 .PHONY: build
 
@@ -15,8 +15,8 @@ coverage: build linters license_check
 
 build: # @HELP build the source code
 build: deps
-	GOOS=linux GOARCH=amd64 go build -o build/_output/redis-storage ./cmd/redis-storage
-	GOOS=linux GOARCH=amd64 go build -o build/_output/redis-storage-controller ./cmd/controller
+	GOOS=linux GOARCH=amd64 go build -o build/_output/redis-storage-node ./cmd/redis-storage-node
+
 
 deps: # @HELP ensure that the required dependencies are in place
 	go build -v ./...
@@ -30,14 +30,14 @@ license_check: # @HELP examine and ensure license headers exist
 	@if [ ! -d "../build-tools" ]; then cd .. && git clone https://github.com/onosproject/build-tools.git; fi
 	./../build-tools/licensing/boilerplate.py -v --rootdir=${CURDIR}
 
-images: # @HELP build redis-storage Docker image
-images: build
-	docker build . -f build/redis-storage/Dockerfile -t atomix/redis-storage:${ATOMIX_REDIS_PROXY_VERSION}
-	docker build . -f build/controller/Dockerfile -t atomix/redis-storage-controller:${ATOMIX_REDIS_CONTROLLER_VERSION}
+image: # @HELP build redis-storage Docker image
+image: build
+	docker build . -f build/redis-storage/Dockerfile -t atomix/redis-storage-node:${ATOMIX_REDIS_PROXY_VERSION}
+
 
 kind: images
-	kind load docker-image atomix/redis-storage:${ATOMIX_REDIS_PROXY_VERSION}
-	kind load docker-image atomix/redis-storage-controller:${ATOMIX_REDIS_PROXY_VERSION}
+	kind load docker-image atomix/redis-storage-node:${ATOMIX_REDIS_STORAGE_NODE_VERSION}
+
 	
 
 all: test
