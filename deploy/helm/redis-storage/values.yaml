@@ -2,15 +2,9 @@ clusters: 1
 partitions: 1
 
 proxy:
-  repository: atomix/redis-storage
+  repository: atomix/redis-storage-node
   tag: latest
   pullPolicy: IfNotPresent
   pullSecrets: []
 
-backend:
-  name: redis
-  repository: redis
-  tag: latest
-  pullPolicy: IfNotPresent
-  pullSecrets: []
-  replicaCount: 1
+

@@ -10,7 +10,7 @@ spec:
             storage:
                 group: storage.cloud.atomix.io
                 version: v1beta1
-                kind: RedisStorage
+                kind: RedisStorageClass
                 name: {{.Release.Name}}
                 namespace: {{.Release.Namespace}}
 

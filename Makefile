@@ -35,7 +35,7 @@ image: build
 	docker build . -f build/redis-storage/Dockerfile -t atomix/redis-storage-node:${ATOMIX_REDIS_PROXY_VERSION}
 
 
-kind: images
+kind: image
 	kind load docker-image atomix/redis-storage-node:${ATOMIX_REDIS_STORAGE_NODE_VERSION}
 
 	
