@@ -32,7 +32,7 @@ license_check: # @HELP examine and ensure license headers exist
 
 image: # @HELP build redis-storage Docker image
 image: build
-	docker build . -f build/redis-storage/Dockerfile -t atomix/redis-storage-node:${ATOMIX_REDIS_PROXY_VERSION}
+	docker build  . -f build/redis-storage-node/Dockerfile  -t  atomix/redis-storage-node:${ATOMIX_REDIS_STORAGE_NODE_VERSION}
 
 
 kind: image

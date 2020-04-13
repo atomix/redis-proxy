@@ -1,7 +1,7 @@
 apiVersion: cloud.atomix.io/v1beta2
 kind: Database
 metadata:
-    name: {{.Release.Name}}
+    name: {{ .Release.Name }}
 spec:
     clusters: {{.Values.clusters}}
     template:
@@ -11,8 +11,8 @@ spec:
                 group: storage.cloud.atomix.io
                 version: v1beta1
                 kind: RedisStorageClass
-                name: {{.Release.Name}}
-                namespace: {{.Release.Namespace}}
+                name: {{ .Release.Name }}
+                namespace: {{ .Release.Namespace }}
 
 
 
