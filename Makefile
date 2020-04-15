@@ -1,6 +1,6 @@
 export CGO_ENABLED=0
 export GO111MODULE=on
-ATOMIX_REDIS_PROXY_VERSION := latest
+ATOMIX_REDIS_STORAGE_NODE_VERSION := latest
 
 .PHONY: build
 
@@ -14,7 +14,7 @@ coverage: build linters license_check
 
 build: # @HELP build the source code
 build: deps
-	GOOS=linux GOARCH=amd64 go build -o build/_output/redis-proxy ./cmd/redis-proxy
+	GOOS=linux GOARCH=amd64 go build -o build/_output/redis-storage-node ./cmd/redis-storage-node
 
 deps: # @HELP ensure that the required dependencies are in place
 	go build -v ./...
@@ -30,10 +30,10 @@ license_check: # @HELP examine and ensure license headers exist
 
 image: # @HELP build redis-proxy Docker image
 image: build
-	docker build . -f build/docker/Dockerfile -t atomix/redis-proxy:${ATOMIX_REDIS_PROXY_VERSION}
+	docker build . -f build/docker/Dockerfile -t atomix/redis-storage-node:${ATOMIX_REDIS_STORAGE_NODE_VERSION}
 
 kind: image
-	kind load docker-image atomix/redis-proxy:${ATOMIX_REDIS_PROXY_VERSION}
+	kind load docker-image atomix/redis-storage-node:${ATOMIX_REDIS_STORAGE_NODE_VERSION}
 	
 
 all: test
